@@ -1,0 +1,19 @@
+{
+  "name": "express-backend",
+  "version": "1.0.0",
+  "description": "simple restful api",
+  "main": "index.js",
+  "scripts": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/stpwin/express-backend.git"
+  },
+  "author": "stpwin",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/stpwin/express-backend/issues"
+  },
+  "homepage": "https://github.com/stpwin/express-backend#readme"
+}
