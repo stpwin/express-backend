@@ -1,17 +1,22 @@
-var mongoose = require('mongoose');
-var router = require('express').Router();
-var passport = require('passport');
-var auth = require('../auth');
+const mongoose = require('mongoose');
+const router = require('express').Router();
+const passport = require('passport');
+const auth = require('../auth');
+const userController = require('../userController');
 
-var User = mongoose.model('User');
-var Role = mongoose.model('Role');
+const User = mongoose.model('User');
+const Role = mongoose.model('Role');
 
-router.get('/user', auth.required, function (req, res, next) { //get user
-    User.findById(req.payload.id).then(function (user) {
-        if (!user) { return res.sendStatus(401); }
+router.get('/user', auth.required, userController.getUser, function (req, res, next) { //get user
+    console.log(req.payload)
+    console.log(req.user)
+    return res.json(req.user);
+});
 
-        return res.json({ user: user.toAuthJSON() });
-    }).catch(next);
+router.get('/admin', auth.required, userController.getUser, userController.grantAccess('readAny', 'profile'), function (req, res, next) { //get user
+    console.log(req.payload)
+    console.log(req.user)
+    return res.json(req.user);
 });
 
 router.put('/user', auth.required, function (req, res, next) { //update user
@@ -69,12 +74,12 @@ router.post('/users/login', function (req, res, next) { //login
 });
 
 router.post('/users', function (req, res, next) { //create user
-    var user = new User();
+    const user = new User();
 
     user.username = req.body.user.username;
     user.email = req.body.user.email;
     user.setPassword(req.body.user.password);
-    user.level = 2;
+    user.role = "administrator";
 
     // var role = new Role("")
     // user.setRole(role);

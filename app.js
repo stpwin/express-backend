@@ -1,4 +1,4 @@
-var http = require('http'),
+const http = require('http'),
     path = require('path'),
     methods = require('methods'),
     express = require('express'),
@@ -7,12 +7,12 @@ var http = require('http'),
     cors = require('cors'),
     passport = require('passport'),
     errorhandler = require('errorhandler'),
-    mongoose = require('mongoose');
+    mongoose = require('mongoose')
 
-var isProduction = process.env.NODE_ENV === 'production';
+const { isProduction, mongoDBUri, port, secret } = require('./config');
 
 // Create global app object
-var app = express();
+const app = express();
 
 app.use(cors());
 
@@ -24,18 +24,11 @@ app.use(bodyParser.json());
 app.use(require('method-override')());
 app.use(express.static(__dirname + '/public'));
 
-app.use(session({ secret: 'secret', cookie: { maxAge: 60000 }, resave: false, saveUninitialized: false }));
+app.use(session({ secret: secret, cookie: { maxAge: 60000 }, resave: false, saveUninitialized: false }));
 
-if (!isProduction) {
-    app.use(errorhandler());
-}
-
-if (isProduction) {
-    mongoose.connect(process.env.MONGODB_URI);
-} else {
-    mongoose.connect('mongodb://localhost:27017/real-world');
-    mongoose.set('debug', true);
-}
+mongoose.connect(mongoDBUri).then(() => {
+    console.log('Connected to the Database successfully')
+})
 
 require('./models/User');
 require('./models/Role');
@@ -46,19 +39,10 @@ require('./config/passport');
 
 app.use(require('./routes'));
 
-/// catch 404 and forward to error handler
-app.use(function (req, res, next) {
-    var err = new Error('Not Found');
-    err.status = 404;
-    next(err);
-});
-
-/// error handlers
-
-// development error handler
-// will print stacktrace
 if (!isProduction) {
-    app.use(function (err, req, res, next) {
+    app.use(errorhandler());
+    mongoose.set('debug', true);
+    app.use(async (err, req, res, next) => {
         console.log(err.stack);
 
         res.status(err.status || 500);
@@ -72,9 +56,18 @@ if (!isProduction) {
     });
 }
 
+/// catch 404 and forward to error handler
+app.use(async (req, res, next) =>{
+    const err = new Error('Not Found');
+    err.status = 404;
+    next(err);
+});
+
+/// error handlers
+
 // production error handler
 // no stacktraces leaked to user
-app.use(function (err, req, res, next) {
+app.use(async (err, req, res, next) => {
     res.status(err.status || 500);
     res.json({
         'errors': {
@@ -85,6 +78,6 @@ app.use(function (err, req, res, next) {
 });
 
 // finally, let's start our server...
-var server = app.listen(process.env.PORT || 3000, function () {
+const server = app.listen(port, () => {
     console.log('Listening on port ' + server.address().port);
 });

@@ -1,18 +1,22 @@
-var mongoose = require('mongoose');
-var uniqueValidator = require('mongoose-unique-validator');
-var crypto = require('crypto');
-var jwt = require('jsonwebtoken');
-var secret = require('../config').secret;
-var expireDay = require('../config').expireDay;
+const mongoose = require('mongoose');
+const uniqueValidator = require('mongoose-unique-validator');
+const crypto = require('crypto');
+const jwt = require('jsonwebtoken');
+const secret = require('../config').secret;
+const expireDay = require('../config').expireDay;
 
-var UserSchema = new mongoose.Schema({
+const UserSchema = new mongoose.Schema({
     username: { type: String, lowercase: true, unique: true, required: [true, "can't be blank"], match: [/^[a-zA-Z0-9]+$/, 'is invalid'], index: true },
     email: { type: String, lowercase: true, unique: true, required: [true, "can't be blank"], match: [/\S+@\S+\.\S+/, 'is invalid'], index: true },
     bio: String,
     image: String,
     favorites: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Article' }],
     following: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
-    role: { type: mongoose.Schema.Types.ObjectId, ref: 'Role' },
+    role: {
+        type: "string",
+        default: 'base',
+        enum: ["basic", "supervisor", "administrator"]
+    },
     level: Number,
     hash: String,
     salt: String
@@ -21,7 +25,7 @@ var UserSchema = new mongoose.Schema({
 UserSchema.plugin(uniqueValidator, { message: 'is already taken.' });
 
 UserSchema.methods.validPassword = function (password) {
-    var hash = crypto.pbkdf2Sync(password, this.salt, 10000, 512, 'sha512').toString('hex');
+    const hash = crypto.pbkdf2Sync(password, this.salt, 10000, 512, 'sha512').toString('hex');
     return this.hash === hash;
 };
 
@@ -31,8 +35,8 @@ UserSchema.methods.setPassword = function (password) {
 };
 
 UserSchema.methods.generateJWT = function () {
-    var today = new Date();
-    var exp = new Date(today);
+    const today = new Date();
+    const exp = new Date(today);
     exp.setDate(today.getDate() + expireDay);
     
     return jwt.sign({
@@ -53,7 +57,8 @@ UserSchema.methods.toAuthJSON = function () {
         token: this.generateJWT(),
         bio: this.bio,
         image: this.image,
-        level: this.level
+        level: this.level,
+        role: this.role
     };
 };
 
