@@ -1,0 +1,39 @@
+const mongoose = require("mongoose");
+const uniqueValidator = require("mongoose-unique-validator");
+
+const AddressSchema = new mongoose.Schema({
+  houseNo: String,
+  village: String,
+  roomNo: String,
+  classNo: String,
+  mooNo: Number,
+  alleyway: String,
+  soi: String,
+  districtNo: Number
+});
+
+const CustomerSchema = new mongoose.Schema(
+  {
+    title: String,
+    firstName: { type: String, required: [true, "can't be blank"] },
+    lastName: { type: String, required: [true, "can't be blank"] },
+    peaId: {
+      type: Number,
+      unique: true,
+      required: [true, "can't be blank"],
+      index: true
+    },
+    dateAppear: [{ type: Date, default: Date.now }],
+    address: AddressSchema,
+    authorize: { type: String, enum: ["ทหาร", "ภรรยา", "ทายาท"] },
+    soldierNo: String,
+    war: { type: String, enum: ["เวียดนาม"] },
+    signature: String
+  },
+  { timestamps: true }
+);
+
+CustomerSchema.plugin(uniqueValidator, { message: "is already taken." });
+
+mongoose.model("Address", AddressSchema);
+mongoose.model("Customer", CustomerSchema);
