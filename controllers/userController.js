@@ -19,7 +19,7 @@ exports.getUser = async (req, res, next) => {
   }
 };
 
-exports.grantAccess = function(action) {
+exports.grantAccess = (action) => {
   return async (req, res, next) => {
     // console.log(req);
     try {

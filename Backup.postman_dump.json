@@ -1,0 +1,863 @@
+{
+	"version": 1,
+	"collections": [
+		{
+			"id": "55606c2c-7725-4ffc-ae26-108291a550b4",
+			"name": "PEA-Express-Backend",
+			"description": null,
+			"auth": {
+				"type": "bearer",
+				"bearer": [
+					{
+						"key": "token",
+						"value": "{{token}}"
+					}
+				]
+			},
+			"events": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "a0a0f34c-bfea-4bd6-ac8c-8f2313a08174",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "dee2fc7c-a9cb-486b-a4a2-aa9e25b7a5d3",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			],
+			"variables": [
+				{
+					"key": "host",
+					"value": "localhost",
+					"disabled": false
+				},
+				{
+					"key": "port",
+					"value": "3000",
+					"disabled": false
+				}
+			],
+			"order": [],
+			"folders_order": [
+				"6d31ad62-a4f1-471e-8e1d-31fe3f361c39",
+				"7cbb7ea7-768c-4aaf-8d9c-dd29b14454ca",
+				"e025549f-83e6-46c7-ad43-e45994a566a0"
+			],
+			"protocolProfileBehavior": {},
+			"folders": [
+				{
+					"id": "e025549f-83e6-46c7-ad43-e45994a566a0",
+					"name": "Administrator",
+					"description": "",
+					"auth": null,
+					"events": null,
+					"collection": "55606c2c-7725-4ffc-ae26-108291a550b4",
+					"folder": null,
+					"order": [
+						"b8e944ad-47bc-4673-b89e-894f1970a326",
+						"2a86baf6-8cf2-4050-a6c5-bf8375fdd571",
+						"ead4d323-2dfc-4b5b-ac0e-b353c2e5bc47",
+						"4e23e7a3-6e5a-4dab-805c-189e6ded69c7"
+					],
+					"folders_order": [],
+					"protocolProfileBehavior": {},
+					"collectionId": "55606c2c-7725-4ffc-ae26-108291a550b4",
+					"folderId": "e025549f-83e6-46c7-ad43-e45994a566a0"
+				},
+				{
+					"id": "7cbb7ea7-768c-4aaf-8d9c-dd29b14454ca",
+					"name": "Customer",
+					"description": "",
+					"auth": null,
+					"events": null,
+					"collection": "55606c2c-7725-4ffc-ae26-108291a550b4",
+					"folder": null,
+					"order": [
+						"4bb13173-1863-4c90-9677-63cd48406cde",
+						"46e58111-98df-4da9-b3d7-2dd96a0435e3",
+						"2b9a1e1b-3547-46cd-b9fa-191172afc3f1",
+						"24c0698a-61b2-484f-9e88-dff00da91e8c",
+						"c06fbd71-97ed-4b18-b2e1-38d75f60df3f"
+					],
+					"folders_order": [],
+					"protocolProfileBehavior": {},
+					"collectionId": "55606c2c-7725-4ffc-ae26-108291a550b4",
+					"folderId": "7cbb7ea7-768c-4aaf-8d9c-dd29b14454ca"
+				},
+				{
+					"id": "6d31ad62-a4f1-471e-8e1d-31fe3f361c39",
+					"name": "User",
+					"description": "",
+					"auth": null,
+					"events": null,
+					"collection": "55606c2c-7725-4ffc-ae26-108291a550b4",
+					"folder": null,
+					"order": [
+						"30d8188b-d25e-46ce-ac14-271a29ba91bc",
+						"2e4434a1-a1b1-415e-98d0-66798056f1a7",
+						"e157a3eb-0b0c-44b9-81ba-e56433551766",
+						"5d0857e0-5712-4e93-b506-d6dab282ed82",
+						"9a8266c3-7f70-49d4-9f4c-ccb6bb7d48f9"
+					],
+					"folders_order": [],
+					"protocolProfileBehavior": {},
+					"collectionId": "55606c2c-7725-4ffc-ae26-108291a550b4",
+					"folderId": "6d31ad62-a4f1-471e-8e1d-31fe3f361c39"
+				}
+			],
+			"requests": [
+				{
+					"id": "24c0698a-61b2-484f-9e88-dff00da91e8c",
+					"name": "queryACustomer",
+					"url": "http://{{host}}:{{port}}/api/customers/123456",
+					"description": "ดึงข้อมูลลูกค้าโดย peaId",
+					"data": null,
+					"dataOptions": null,
+					"dataMode": null,
+					"headerData": [],
+					"method": "GET",
+					"pathVariableData": [],
+					"queryParams": [],
+					"auth": null,
+					"events": null,
+					"folder": "7cbb7ea7-768c-4aaf-8d9c-dd29b14454ca",
+					"currentHelper": null,
+					"helperAttributes": null,
+					"collectionId": "55606c2c-7725-4ffc-ae26-108291a550b4",
+					"headers": "",
+					"pathVariables": {}
+				},
+				{
+					"id": "2a86baf6-8cf2-4050-a6c5-bf8375fdd571",
+					"name": "deleteCustomer",
+					"url": "http://{{hots}}:{{port}}/api/customers/123456",
+					"description": null,
+					"data": null,
+					"dataOptions": null,
+					"dataMode": null,
+					"headerData": [],
+					"method": "DELETE",
+					"pathVariableData": [],
+					"queryParams": [],
+					"auth": null,
+					"events": null,
+					"folder": "e025549f-83e6-46c7-ad43-e45994a566a0",
+					"currentHelper": null,
+					"helperAttributes": null,
+					"collectionId": "55606c2c-7725-4ffc-ae26-108291a550b4",
+					"headers": "",
+					"pathVariables": {}
+				},
+				{
+					"id": "2b9a1e1b-3547-46cd-b9fa-191172afc3f1",
+					"name": "testRole",
+					"url": "http://{{host}}:{{port}}/api/admin",
+					"description": "ทดสอบการจำกัดสิทธิ์",
+					"data": null,
+					"dataOptions": null,
+					"dataMode": null,
+					"headerData": [],
+					"method": "GET",
+					"pathVariableData": [],
+					"queryParams": [],
+					"auth": null,
+					"events": null,
+					"folder": "7cbb7ea7-768c-4aaf-8d9c-dd29b14454ca",
+					"currentHelper": null,
+					"helperAttributes": null,
+					"collectionId": "55606c2c-7725-4ffc-ae26-108291a550b4",
+					"headers": "",
+					"pathVariables": {}
+				},
+				{
+					"id": "2e4434a1-a1b1-415e-98d0-66798056f1a7",
+					"name": "testToken",
+					"url": "http://{{host}}:{{port}}/",
+					"description": null,
+					"data": null,
+					"dataOptions": null,
+					"dataMode": null,
+					"headerData": [
+						{
+							"key": "auth",
+							"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJzdHB3aW4iLCJpYXQiOjE1NzQxNDY5NDQ2NzJ9.l7V9SpbclYiGd1hoSDvW5NqJFTF5azN6tyZ8SBb8eQ8",
+							"description": null,
+							"type": "text",
+							"enabled": true
+						}
+					],
+					"method": "GET",
+					"pathVariableData": [],
+					"queryParams": [],
+					"auth": null,
+					"events": null,
+					"folder": "6d31ad62-a4f1-471e-8e1d-31fe3f361c39",
+					"currentHelper": null,
+					"helperAttributes": null,
+					"collectionId": "55606c2c-7725-4ffc-ae26-108291a550b4",
+					"headers": "auth: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJzdHB3aW4iLCJpYXQiOjE1NzQxNDY5NDQ2NzJ9.l7V9SpbclYiGd1hoSDvW5NqJFTF5azN6tyZ8SBb8eQ8\n",
+					"pathVariables": {}
+				},
+				{
+					"id": "30d8188b-d25e-46ce-ac14-271a29ba91bc",
+					"name": "login",
+					"url": "http://{{host}}:{{port}}/api/users/login",
+					"description": "เข้าสู่ระบบเพื่อนสร้าง Token",
+					"data": [],
+					"dataOptions": null,
+					"dataMode": "raw",
+					"headerData": [
+						{
+							"description": null,
+							"key": "Content-Type",
+							"name": "Content-Type",
+							"type": "text",
+							"value": "application/json"
+						}
+					],
+					"method": "POST",
+					"pathVariableData": [],
+					"queryParams": [],
+					"auth": null,
+					"events": null,
+					"folder": "6d31ad62-a4f1-471e-8e1d-31fe3f361c39",
+					"responses": [
+						{
+							"id": "35b4bcfb-a1f7-43d9-9fa8-25ebb1a31aef",
+							"name": "ตัวอย่างการเข้าสู่ระบบ",
+							"status": null,
+							"mime": null,
+							"language": null,
+							"text": null,
+							"responseCode": null,
+							"requestObject": {
+								"data": [],
+								"dataMode": "raw",
+								"headerData": [
+									{
+										"description": null,
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									}
+								],
+								"method": "POST",
+								"pathVariableData": [],
+								"queryParams": [],
+								"url": "http://localhost:3000/api/users/login",
+								"rawModeData": "{\n    \"user\": {\n        \"email\": \"isysforce@gmail.com\",\n        \"password\": \"sittiporn\"\n    }\n}"
+							},
+							"headers": null,
+							"cookies": null,
+							"request": "30d8188b-d25e-46ce-ac14-271a29ba91bc",
+							"collection": "55606c2c-7725-4ffc-ae26-108291a550b4"
+						}
+					],
+					"currentHelper": null,
+					"helperAttributes": null,
+					"collectionId": "55606c2c-7725-4ffc-ae26-108291a550b4",
+					"rawModeData": "{\n    \"user\": {\n        \"email\": \"{{email}}\",\n        \"password\": \"{{password}}\"\n    }\n}",
+					"headers": "Content-Type: application/json\n",
+					"pathVariables": {}
+				},
+				{
+					"id": "46e58111-98df-4da9-b3d7-2dd96a0435e3",
+					"name": "getCustomers",
+					"url": "http://{{host}}:{{port}}/api/customers/",
+					"description": "ลิสรายการลูกค้า",
+					"data": [],
+					"dataOptions": null,
+					"dataMode": "raw",
+					"headerData": [
+						{
+							"key": "Content-Type",
+							"name": "Content-Type",
+							"value": "application/json",
+							"description": null,
+							"type": "text"
+						}
+					],
+					"method": "GET",
+					"pathVariableData": [],
+					"queryParams": [],
+					"auth": null,
+					"events": null,
+					"folder": "7cbb7ea7-768c-4aaf-8d9c-dd29b14454ca",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"responses": [
+						{
+							"id": "698b0292-dcc7-4793-85d9-a2f20e5f06f3",
+							"name": "ตัวอย่างการลิสรายการลูกค้า",
+							"status": null,
+							"mime": null,
+							"language": "json",
+							"text": "[\n    {\n        \"dateAppear\": [\n            \"2019-11-21T12:56:19.810Z\",\n            \"2019-11-21T12:56:19.810Z\",\n            \"2019-11-21T12:56:19.810Z\",\n            \"2019-11-21T12:56:19.810Z\"\n        ],\n        \"_id\": \"5dd689730638730b0c8e288e\",\n        \"title\": \"นาง\",\n        \"firstName\": \"Sittiporn\",\n        \"lastName\": \"Kawee\",\n        \"peaId\": 123456,\n        \"authorize\": \"ทหาร\",\n        \"soldierNo\": \"1234\",\n        \"war\": \"เวียดนาม\",\n        \"signature\": \"\",\n        \"address\": {\n            \"_id\": \"5dd689730638730b0c8e288f\",\n            \"houseNo\": \"143/1\",\n            \"village\": \"\",\n            \"roomNo\": \"\",\n            \"classNo\": \"\",\n            \"mooNo\": 0,\n            \"alleyway\": \"\",\n            \"soi\": \"\",\n            \"districtNo\": 554\n        },\n        \"createdAt\": \"2019-11-21T12:56:23.418Z\",\n        \"updatedAt\": \"2019-11-21T15:31:55.533Z\",\n        \"__v\": 9\n    },\n    {\n        \"dateAppear\": [\n            \"2019-11-21T13:23:10.245Z\"\n        ],\n        \"_id\": \"5dd68fbef42898439076fe2d\",\n        \"title\": \"title\",\n        \"firstName\": \"Sittiporn\",\n        \"lastName\": \"Kawee\",\n        \"peaId\": 1234567,\n        \"authorize\": \"ทหาร\",\n        \"soldierNo\": \"1234\",\n        \"war\": \"เวียดนาม\",\n        \"signature\": \"\",\n        \"address\": {\n            \"_id\": \"5dd68fbef42898439076fe2e\",\n            \"houseNo\": \"\",\n            \"village\": \"\",\n            \"roomNo\": \"\",\n            \"classNo\": \"\",\n            \"mooNo\": 0,\n            \"alleyway\": \"\",\n            \"soi\": \"\",\n            \"districtNo\": 0\n        },\n        \"createdAt\": \"2019-11-21T13:23:12.790Z\",\n        \"updatedAt\": \"2019-11-21T13:23:12.790Z\",\n        \"__v\": 0\n    }\n]",
+							"responseCode": {
+								"code": 200,
+								"name": "OK"
+							},
+							"requestObject": {
+								"data": [],
+								"dataMode": "raw",
+								"headerData": [
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"value": "application/json",
+										"description": "",
+										"type": "text"
+									}
+								],
+								"method": "GET",
+								"pathVariableData": [],
+								"queryParams": [],
+								"url": "http://localhost:3000/api/customers",
+								"protocolProfileBehavior": {
+									"disableBodyPruning": true
+								},
+								"rawModeData": "{\n\t\"perPage\": 10,\n\t\"pageNo\": 1\n}"
+							},
+							"headers": [
+								{
+									"key": "X-Powered-By",
+									"value": "Express"
+								},
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "*"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "1044"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"414-zNpoXa3L+vqOyKBvEoNuW+DZwEI\""
+								},
+								{
+									"key": "Date",
+									"value": "Thu, 21 Nov 2019 15:48:46 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								}
+							],
+							"cookies": null,
+							"request": "46e58111-98df-4da9-b3d7-2dd96a0435e3",
+							"collection": "55606c2c-7725-4ffc-ae26-108291a550b4"
+						}
+					],
+					"currentHelper": null,
+					"helperAttributes": null,
+					"collectionId": "55606c2c-7725-4ffc-ae26-108291a550b4",
+					"rawModeData": "{\n\t\"perPage\": 2\n}",
+					"headers": "Content-Type: application/json\n",
+					"pathVariables": {}
+				},
+				{
+					"id": "4bb13173-1863-4c90-9677-63cd48406cde",
+					"name": "createCustomer",
+					"url": "http://{{host}}:{{port}}/api/customers",
+					"description": "เพิ่มลูกค้า",
+					"data": [],
+					"dataOptions": null,
+					"dataMode": "raw",
+					"headerData": [
+						{
+							"key": "Content-Type",
+							"name": "Content-Type",
+							"value": "application/json",
+							"description": null,
+							"type": "text"
+						}
+					],
+					"method": "POST",
+					"pathVariableData": [],
+					"queryParams": [],
+					"auth": null,
+					"events": null,
+					"folder": "7cbb7ea7-768c-4aaf-8d9c-dd29b14454ca",
+					"responses": [
+						{
+							"id": "f0d03718-20e2-47cb-9f0e-5ed05f7dc39f",
+							"name": "ตัวอย่าง field ในการเพิ่มลูกค้า",
+							"status": null,
+							"mime": null,
+							"language": null,
+							"text": null,
+							"responseCode": null,
+							"requestObject": {
+								"data": [],
+								"dataMode": "raw",
+								"headerData": [
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"value": "application/json",
+										"description": "",
+										"type": "text"
+									}
+								],
+								"method": "POST",
+								"pathVariableData": [],
+								"queryParams": [],
+								"url": "http://localhost:3000/api/customers",
+								"rawModeData": "{\n    \"customer\": {\n        \"dateAppear\": \"2019-11-21T12:56:19.810Z\",\n        \"title\": \"นาย\",\n        \"firstName\": \"Sittiporn\",\n        \"lastName\": \"Kawee\",\n        \"peaId\": 123456,\n        \"authorize\": \"ทหาร\",\n        \"soldierNo\": \"1234\",\n        \"war\": \"เวียดนาม\",\n        \"signature\": \"\",\n        \"address\": {\n            \"houseNo\": \"143/1\",\n            \"village\": \"\",\n            \"roomNo\": \"\",\n            \"classNo\": \"\",\n            \"mooNo\": 0,\n            \"alleyway\": \"\",\n            \"soi\": \"\",\n            \"districtNo\": 554\n        }\n    }\n}"
+							},
+							"headers": null,
+							"cookies": null,
+							"request": "4bb13173-1863-4c90-9677-63cd48406cde",
+							"collection": "55606c2c-7725-4ffc-ae26-108291a550b4"
+						}
+					],
+					"currentHelper": null,
+					"helperAttributes": null,
+					"collectionId": "55606c2c-7725-4ffc-ae26-108291a550b4",
+					"rawModeData": "{\n    \"customer\": {\n        \"dateAppear\": \"2019-11-21T12:56:19.810Z\",\n        \"title\": \"นาย\",\n        \"firstName\": \"Sittiporn\",\n        \"lastName\": \"Kawee\",\n        \"peaId\": 1,\n        \"authorize\": \"ทหาร\",\n        \"soldierNo\": \"1234\",\n        \"war\": \"เวียดนาม\",\n        \"signature\": \"\",\n        \"address\": {\n            \"houseNo\": \"143/1\",\n            \"village\": \"\",\n            \"roomNo\": \"\",\n            \"classNo\": \"\",\n            \"mooNo\": 0,\n            \"alleyway\": \"\",\n            \"soi\": \"\",\n            \"districtNo\": 554\n        }\n    }\n}",
+					"headers": "Content-Type: application/json\n",
+					"pathVariables": {}
+				},
+				{
+					"id": "4e23e7a3-6e5a-4dab-805c-189e6ded69c7",
+					"name": "getAllUsers",
+					"url": "http://{{host}}:{{port}}/api/users/all/a",
+					"description": "",
+					"data": [],
+					"dataOptions": {
+						"raw": {
+							"language": "json"
+						}
+					},
+					"dataMode": "raw",
+					"headerData": [
+						{
+							"key": "Content-Type",
+							"name": "Content-Type",
+							"value": "application/json",
+							"description": "",
+							"type": "text"
+						}
+					],
+					"method": "GET",
+					"pathVariableData": [],
+					"queryParams": [],
+					"auth": null,
+					"events": null,
+					"folder": "e025549f-83e6-46c7-ad43-e45994a566a0",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"currentHelper": null,
+					"helperAttributes": null,
+					"collectionId": "55606c2c-7725-4ffc-ae26-108291a550b4",
+					"rawModeData": "{\n\t\"perPage\": 50\n}",
+					"headers": "Content-Type: application/json\n",
+					"pathVariables": {}
+				},
+				{
+					"id": "5d0857e0-5712-4e93-b506-d6dab282ed82",
+					"name": "getUser",
+					"url": "http://{{host}}:{{port}}/api/users",
+					"description": "รับข้อมูลผู้ใช้งาน",
+					"data": null,
+					"dataOptions": null,
+					"dataMode": null,
+					"headerData": [
+						{
+							"description": null,
+							"key": "Content-Type",
+							"name": "Content-Type",
+							"type": "text",
+							"value": "application/json"
+						}
+					],
+					"method": "GET",
+					"pathVariableData": [],
+					"queryParams": [],
+					"auth": null,
+					"events": null,
+					"folder": "6d31ad62-a4f1-471e-8e1d-31fe3f361c39",
+					"currentHelper": null,
+					"helperAttributes": null,
+					"collectionId": "55606c2c-7725-4ffc-ae26-108291a550b4",
+					"headers": "Content-Type: application/json\n",
+					"pathVariables": {}
+				},
+				{
+					"id": "9a8266c3-7f70-49d4-9f4c-ccb6bb7d48f9",
+					"name": "updateUser",
+					"url": "http://{{host}}:{{port}}/api/users",
+					"description": "อัพเดทข้อมูลผู้ใช้งาน",
+					"data": [],
+					"dataOptions": null,
+					"dataMode": "raw",
+					"headerData": [
+						{
+							"description": null,
+							"key": "Content-Type",
+							"name": "Content-Type",
+							"type": "text",
+							"value": "application/json"
+						}
+					],
+					"method": "PUT",
+					"pathVariableData": [],
+					"queryParams": [],
+					"auth": null,
+					"events": null,
+					"folder": "6d31ad62-a4f1-471e-8e1d-31fe3f361c39",
+					"responses": [
+						{
+							"id": "ab6ed2ec-bdb2-453a-9e7b-79302da9ebe1",
+							"name": "ตัวอย่างการอัพเดทข้อมูลผู้ใช้งาน",
+							"status": null,
+							"mime": null,
+							"language": null,
+							"text": null,
+							"responseCode": null,
+							"requestObject": {
+								"data": [],
+								"dataMode": "raw",
+								"headerData": [
+									{
+										"description": null,
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									}
+								],
+								"method": "PUT",
+								"pathVariableData": [],
+								"queryParams": [],
+								"url": "http://localhost:3000/api/user",
+								"rawModeData": "{\n\t\"user\":{\n\t\t\"oldPassword\": \"sittiporn\",\n\t\t\"newPassword\": \"sittiporn\",\n\t\t\"bio\": \"My fucking new bio\",\n\t\t\"image\": \"\",\n\t\t\"email\": \"isysforce@gmail.com\",\n\t\t\"username\": \"stpwin\"\n\t}\n}"
+							},
+							"headers": null,
+							"cookies": null,
+							"request": "9a8266c3-7f70-49d4-9f4c-ccb6bb7d48f9",
+							"collection": "55606c2c-7725-4ffc-ae26-108291a550b4"
+						}
+					],
+					"currentHelper": null,
+					"helperAttributes": null,
+					"collectionId": "55606c2c-7725-4ffc-ae26-108291a550b4",
+					"rawModeData": "{\n\t\"user\":{\n\t\t\"oldPassword\": \"sittiporn\",\n\t\t\"newPassword\": \"sittiporn\",\n\t\t\"bio\": \"My fucking new bio\",\n\t\t\"image\": \"\",\n\t\t\"email\": \"isysforce@gmail.com\",\n\t\t\"username\": \"stpwin\"\n\t}\n}",
+					"headers": "Content-Type: application/json\n",
+					"pathVariables": {}
+				},
+				{
+					"id": "b8e944ad-47bc-4673-b89e-894f1970a326",
+					"name": "getUserGrant",
+					"url": "http://{{host}}:{{port}}/api/users/12",
+					"description": null,
+					"data": null,
+					"dataOptions": null,
+					"dataMode": null,
+					"headerData": [
+						{
+							"description": null,
+							"enabled": true,
+							"key": "Content-Type",
+							"type": "text",
+							"value": "application/json"
+						}
+					],
+					"method": "DELETE",
+					"pathVariableData": [],
+					"queryParams": [],
+					"auth": null,
+					"events": null,
+					"folder": "e025549f-83e6-46c7-ad43-e45994a566a0",
+					"currentHelper": null,
+					"helperAttributes": null,
+					"collectionId": "55606c2c-7725-4ffc-ae26-108291a550b4",
+					"headers": "Content-Type: application/json\n",
+					"pathVariables": {}
+				},
+				{
+					"id": "c06fbd71-97ed-4b18-b2e1-38d75f60df3f",
+					"name": "updateCustomer",
+					"url": "http://{{host}}:{{port}}/api/customers/123456",
+					"description": "อัพเดทข้อมูลลูกค้า",
+					"data": [],
+					"dataOptions": null,
+					"dataMode": "raw",
+					"headerData": [
+						{
+							"key": "Content-Type",
+							"name": "Content-Type",
+							"value": "application/json",
+							"description": null,
+							"type": "text"
+						}
+					],
+					"method": "PUT",
+					"pathVariableData": [],
+					"queryParams": [],
+					"auth": null,
+					"events": null,
+					"folder": "7cbb7ea7-768c-4aaf-8d9c-dd29b14454ca",
+					"responses": [
+						{
+							"id": "ff5bc75c-1782-4369-ae13-6fabb86c8dde",
+							"name": "ตัวอย่างการอัพเดทข้อมูลลูกค้า",
+							"status": null,
+							"mime": null,
+							"language": "json",
+							"text": "{\n    \"status\": \"updated\",\n    \"updates\": [\n        \"address.houseNo\",\n        \"address.village\",\n        \"address.roomNo\",\n        \"address.classNo\",\n        \"address.mooNo\",\n        \"address.alleyway\",\n        \"address.soi\",\n        \"address.districtNo\",\n        \"title\",\n        \"firstName\",\n        \"lastName\",\n        \"peaId\",\n        \"dateAppear\",\n        \"authorize\",\n        \"soldierNo\",\n        \"war\",\n        \"signature\"\n    ]\n}",
+							"responseCode": {
+								"code": 200,
+								"name": "OK"
+							},
+							"requestObject": {
+								"data": [],
+								"dataMode": "raw",
+								"headerData": [
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"value": "application/json",
+										"description": "",
+										"type": "text"
+									}
+								],
+								"method": "PUT",
+								"pathVariableData": [],
+								"queryParams": [],
+								"url": "http://localhost:3000/api/customer/123456",
+								"rawModeData": "{\n    \"customer\": {\n        \"dateAppear\": \"2019-11-21T12:56:19.810Z\",\n        \"title\": \"นาย\",\n        \"firstName\": \"Sittiporn\",\n        \"lastName\": \"Kawee\",\n        \"peaId\": 123456,\n        \"authorize\": \"ทหาร\",\n        \"soldierNo\": \"1234\",\n        \"war\": \"เวียดนาม\",\n        \"signature\": \"\",\n        \"address\": {\n            \"houseNo\": \"143/1\",\n            \"village\": \"\",\n            \"roomNo\": \"\",\n            \"classNo\": \"\",\n            \"mooNo\": 0,\n            \"alleyway\": \"\",\n            \"soi\": \"\",\n            \"districtNo\": 554\n        }\n    }\n}"
+							},
+							"headers": [
+								{
+									"key": "X-Powered-By",
+									"value": "Express"
+								},
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "*"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Content-Length",
+									"value": "267"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"10b-tmlQljvrdKesFgTUBUs32XimPdE\""
+								},
+								{
+									"key": "Date",
+									"value": "Thu, 21 Nov 2019 15:29:12 GMT"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								}
+							],
+							"cookies": null,
+							"request": "c06fbd71-97ed-4b18-b2e1-38d75f60df3f",
+							"collection": "55606c2c-7725-4ffc-ae26-108291a550b4"
+						}
+					],
+					"currentHelper": null,
+					"helperAttributes": null,
+					"collectionId": "55606c2c-7725-4ffc-ae26-108291a550b4",
+					"rawModeData": "{\n    \"customer\": {\n        \"title\": \"นาง\"\n    }\n}",
+					"headers": "Content-Type: application/json\n",
+					"pathVariables": {}
+				},
+				{
+					"id": "e157a3eb-0b0c-44b9-81ba-e56433551766",
+					"name": "createUser",
+					"url": "http://{{host}}:{{port}}/api/users",
+					"description": "สร้างผู้ใช้สำหรับเข้าใช้งานระบบ",
+					"data": [],
+					"dataOptions": null,
+					"dataMode": "raw",
+					"headerData": [
+						{
+							"description": null,
+							"key": "Content-Type",
+							"name": "Content-Type",
+							"type": "text",
+							"value": "application/json"
+						}
+					],
+					"method": "POST",
+					"pathVariableData": [],
+					"queryParams": [],
+					"auth": null,
+					"events": null,
+					"folder": "6d31ad62-a4f1-471e-8e1d-31fe3f361c39",
+					"responses": [
+						{
+							"id": "38fd405d-aacf-4dc4-a7b3-25a38d2f81bf",
+							"name": "ตัวอย่าง field ในการสร้างผู้ใช้ใหม่",
+							"status": null,
+							"mime": null,
+							"language": null,
+							"text": null,
+							"responseCode": null,
+							"requestObject": {
+								"data": [],
+								"dataMode": "raw",
+								"headerData": [
+									{
+										"description": null,
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									}
+								],
+								"method": "POST",
+								"pathVariableData": [],
+								"queryParams": [],
+								"url": "http://localhost:3000/api/users",
+								"rawModeData": "{\n    \"user\": {\n        \"email\": \"isysforce@gmail.com\",\n        \"username\": \"stpwin\",\n        \"password\": \"sittiporn\",\n        \"bio\": \"\",\n        \"image\": \"\"\n    }\n}"
+							},
+							"headers": null,
+							"cookies": null,
+							"request": "e157a3eb-0b0c-44b9-81ba-e56433551766",
+							"collection": "55606c2c-7725-4ffc-ae26-108291a550b4"
+						}
+					],
+					"currentHelper": null,
+					"helperAttributes": null,
+					"collectionId": "55606c2c-7725-4ffc-ae26-108291a550b4",
+					"rawModeData": "{\n    \"user\": {\n        \"email\": \"{{email}}\",\n        \"username\": \"{{username}}\",\n        \"password\": \"{{password}}\",\n        \"bio\": \"supervisor\",\n        \"image\": \"\"\n    }\n}",
+					"headers": "Content-Type: application/json\n",
+					"pathVariables": {}
+				},
+				{
+					"id": "ead4d323-2dfc-4b5b-ac0e-b353c2e5bc47",
+					"name": "deleteUser",
+					"url": "http://{{host}}:{{port}}/api/users",
+					"description": null,
+					"data": [],
+					"dataOptions": {
+						"raw": {
+							"language": "json"
+						}
+					},
+					"dataMode": "raw",
+					"headerData": [
+						{
+							"key": "Content-Type",
+							"name": "Content-Type",
+							"value": "application/json",
+							"description": "",
+							"type": "text"
+						}
+					],
+					"method": "DELETE",
+					"pathVariableData": [],
+					"queryParams": [],
+					"auth": null,
+					"events": null,
+					"folder": "e025549f-83e6-46c7-ad43-e45994a566a0",
+					"currentHelper": null,
+					"helperAttributes": null,
+					"collectionId": "55606c2c-7725-4ffc-ae26-108291a550b4",
+					"rawModeData": "{\n\t\"userId\": \"5dd750e8382c78014446f8bb\"\n}",
+					"headers": "Content-Type: application/json\n",
+					"pathVariables": {}
+				}
+			]
+		}
+	],
+	"environments": [
+		{
+			"id": "21138b99-e96b-45f7-96ac-6bfb7610f0c7",
+			"name": "Administrator",
+			"values": [
+				{
+					"key": "username",
+					"value": "admin",
+					"enabled": true
+				},
+				{
+					"key": "email",
+					"value": "admin@gmail.com",
+					"enabled": true
+				},
+				{
+					"key": "password",
+					"value": "sittiporn",
+					"enabled": true
+				},
+				{
+					"key": "role",
+					"value": "administrator",
+					"enabled": true
+				},
+				{
+					"key": "token",
+					"value": "",
+					"enabled": true
+				}
+			]
+		},
+		{
+			"id": "8659f55a-f35a-4c38-b4c7-8de2268a83e1",
+			"name": "Supervisor",
+			"values": [
+				{
+					"key": "username",
+					"value": "supervisor",
+					"enabled": true
+				},
+				{
+					"key": "email",
+					"value": "supervisor@gmail.com",
+					"enabled": true
+				},
+				{
+					"key": "password",
+					"value": "sittiporn",
+					"enabled": true
+				},
+				{
+					"key": "role",
+					"value": "supervisor",
+					"enabled": true
+				},
+				{
+					"key": "token",
+					"value": "",
+					"enabled": true
+				}
+			]
+		},
+		{
+			"id": "b663a242-5b66-4927-b397-7fa39b87dca0",
+			"name": "Express-Resful - globals",
+			"values": []
+		}
+	],
+	"headerPresets": [],
+	"globals": []
+}

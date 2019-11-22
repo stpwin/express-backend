@@ -10,34 +10,40 @@ const Address = mongoose.model("Address");
 
 //list all customers
 router.get(
-  "/:pageNo",
+  "/?:pageNo?",
   auth.required,
   userController.getUser,
   userController.grantAccess("readAny"),
-  function(req, res, next) {
-    let perPage = req.body.perPage || 10;
+  (req, res, next) => {
+    let perPage = req.body.perPage || 50;
     if (perPage > 200) {
       perPage = 200;
     }
-    const pageNo = parseInt(req.params.pageNo) || 1;
+    let pageNo = parseInt(req.params.pageNo) || 1;
 
-    const skip = (pageNo - 1) * perPage;
-    Customer.count({}).then(count => {
-      const pages = parseInt(count / perPage) || 1;
-      Customer.find({})
-        .skip(skip)
-        .limit(perPage)
-        .then(customers => {
-          console.log(customers);
-          return res.json({
-            customers: customers,
-            // count: count,
-            pageNo: pageNo,
-            // perPage: perPage,
-            pages: pages
-          });
-        });
-    });
+    Customer.count()
+      .then(count => {
+        const pages = parseInt(count / perPage) || 1;
+        if (pageNo > pages) {
+          pageNo = pages;
+        }
+        const skip = (pageNo - 1) * perPage;
+        Customer.find({})
+          .skip(skip)
+          .limit(perPage)
+          .then(customers => {
+            // console.log(customers);
+            return res.json({
+              customers: customers,
+              // count: count,
+              pageNo: pageNo,
+              // perPage: perPage,
+              pages: pages
+            });
+          })
+          .catch(next);
+      })
+      .catch(next);
   }
 );
 
@@ -48,7 +54,7 @@ router.get(
   userController.getUser,
   userController.grantAccess("readAny"),
   customerController.getCustomerByPeaId,
-  function(req, res, next) {
+  (req, res, next) => {
     return res.json(req.customer);
   }
 );
@@ -61,7 +67,7 @@ router.put(
   userController.grantAccess("updateAny"),
   customerController.checkUpdateBody,
   customerController.getCustomerByPeaId,
-  function(req, res, next) {
+  (req, res, next) => {
     const customerData = req.body.customer;
     const customer = req.customer;
     const updates = [];
@@ -159,7 +165,7 @@ router.post(
   auth.required,
   userController.getUser,
   userController.grantAccess("createAny"),
-  function(req, res, next) {
+  (req, res, next) => {
     const customer = new Customer();
     const address = new Address();
 
@@ -186,7 +192,6 @@ router.post(
     customer
       .save()
       .then(() => {
-        console.log("success");
         res.json({
           status: "success"
         });
@@ -200,7 +205,7 @@ router.delete(
   auth.required,
   userController.getUser,
   userController.grantAccess("deleteAny"),
-  function(req, res, next) {
+  (req, res, next) => {
     const peaId = req.params.peaId;
     if (typeof peaId === "undefined") {
       return res.status(400).json({

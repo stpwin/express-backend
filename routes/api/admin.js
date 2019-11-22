@@ -8,11 +8,12 @@ router.get(
   auth.required,
   userController.getUser,
   userController.grantAccess("readAny"),
-  function(req, res, next) {
+  (req, res, next) => {
     return res.json({
       status: "Hello"
     });
   }
 );
+
 
 module.exports = router;
