@@ -97,7 +97,8 @@ router.put("/", auth.required, (req, res, next) => {
 
 router.post("/login", (req, res, next) => {
   //login
-  if (!req.body.user.email) {
+  
+  if (!req.body.user.username) {
     return res.status(422).json({ errors: { email: "can't be blank" } });
   }
 
@@ -105,16 +106,18 @@ router.post("/login", (req, res, next) => {
     return res.status(422).json({ errors: { password: "can't be blank" } });
   }
 
+  console.log(req.body.user)
+
   passport.authenticate("local", { session: false }, (err, user, info) => {
     if (err) {
       return next(err);
     }
-
+    
     if (user) {
       user.token = user.generateJWT();
-      return res.json({ user: user.toAuthJSON() });
+      return res.json(user.toAuthJSON());
     } else {
-      return res.status(422).json(info);
+      return res.status(403).json(info);
     }
   })(req, res, next);
 });

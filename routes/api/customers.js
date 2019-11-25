@@ -169,10 +169,8 @@ router.post(
   userController.getUser,
   userController.grantAccess("createAny"),
   (req, res, next) => {
-    if (
-      typeof req.body.customer === "undefined" &&
-      typeof req.body.customer.address === "undefined"
-    ) {
+    // console.log(req.body)
+    if (typeof req.body.customer === "undefined" || typeof req.body.customer.address === "undefined") {
       return res.sendStatus(400);
     }
     // console.log(req.body);
