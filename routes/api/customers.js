@@ -4,6 +4,9 @@ const auth = require("../auth");
 const customerController = require("../../controllers/customerController");
 const userController = require("../../controllers/userController");
 const { isValid } = require("../../utils");
+const { signaturePath } = require("../../config");
+var path = require("path");
+const fs = require("fs");
 
 const Customer = mongoose.model("Customer");
 const Address = mongoose.model("Address");
@@ -166,16 +169,24 @@ router.post(
   userController.getUser,
   userController.grantAccess("createAny"),
   (req, res, next) => {
+    if (
+      typeof req.body.customer === "undefined" &&
+      typeof req.body.customer.address === "undefined"
+    ) {
+      return res.sendStatus(400);
+    }
+    // console.log(req.body);
+
     const customer = new Customer();
     const address = new Address();
 
     address.houseNo = req.body.customer.address.houseNo;
-    address.village = req.body.customer.address.village;
-    address.roomNo = req.body.customer.address.roomNo;
-    address.classNo = req.body.customer.address.classNo;
+    // address.village = req.body.customer.address.village;
+    // address.roomNo = req.body.customer.address.roomNo;
+    // address.classNo = req.body.customer.address.classNo;
     address.mooNo = req.body.customer.address.mooNo;
-    address.alleyway = req.body.customer.address.alleyway;
-    address.soi = req.body.customer.address.soi;
+    // address.alleyway = req.body.customer.address.alleyway;
+    // address.soi = req.body.customer.address.soi;
     address.districtNo = req.body.customer.address.districtNo;
 
     customer.title = req.body.customer.title;
@@ -186,12 +197,28 @@ router.post(
     customer.authorize = req.body.customer.authorize;
     customer.soldierNo = req.body.customer.soldierNo;
     customer.war = req.body.customer.war;
-    customer.signature = req.body.customer.signature;
+
     customer.address = address;
+
+    const signatureData = req.body.customer.signatureBase64;
+    let base64Data;
+    let signatureFullPath;
+    if (signatureData) {
+      const signatureFileName = `${customer.peaId}_${Date.now()}.png`;
+      signatureFullPath = path.join(signaturePath, signatureFileName);
+      customer.signature = signatureFileName;
+      base64Data = signatureData.replace(/^data:([A-Za-z-+/]+);base64,/, "");
+    }
 
     customer
       .save()
       .then(() => {
+        if (base64Data) {
+          fs.writeFileSync(signatureFullPath, base64Data, {
+            encoding: "base64"
+          });
+          console.log("Write base64 to file.");
+        }
         res.json({
           status: "success"
         });
