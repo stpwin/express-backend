@@ -12,7 +12,7 @@ exports.getCustomerByPeaId = async (req, res, next) => {
   Customer.findOne({ peaId: peaId })
     .then(customer => {
       if (!customer) {
-        return res.status(404).json({
+        return res.status(204).json({
           error: "No customer found!"
         });
       }

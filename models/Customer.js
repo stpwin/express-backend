@@ -3,13 +3,13 @@ const uniqueValidator = require("mongoose-unique-validator");
 
 const AddressSchema = new mongoose.Schema({
   houseNo: String,
-  village: String,
-  roomNo: String,
-  classNo: String,
+  // village: String,
+  // roomNo: String,
+  // classNo: String,
   mooNo: Number,
-  alleyway: String,
-  soi: String,
-  districtNo: Number
+  // alleyway: String,
+  // soi: String,
+  districtNo: String
 });
 
 const CustomerSchema = new mongoose.Schema(
@@ -18,7 +18,7 @@ const CustomerSchema = new mongoose.Schema(
     firstName: { type: String, required: [true, "can't be blank"] },
     lastName: { type: String, required: [true, "can't be blank"] },
     peaId: {
-      type: Number,
+      type: String,
       unique: true,
       required: [true, "can't be blank"],
       index: true
