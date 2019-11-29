@@ -22,6 +22,16 @@ exports.getCustomerByPeaId = async (req, res, next) => {
     .catch(next);
 };
 
+exports.checkVerifyBody = async (req, res, next) => {
+  const verifyData = req.body.verify;
+  if (!verifyData) {
+    return res.status(400).json({
+      error: "Bad request: No verify data"
+    });
+  }
+  next();
+};
+
 exports.checkUpdateBody = async (req, res, next) => {
   const customerData = req.body.customer;
   if (!customerData) {

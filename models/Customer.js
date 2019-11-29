@@ -23,9 +23,7 @@ const CustomerSchema = new mongoose.Schema(
       required: [true, "can't be blank"],
       index: true
     },
-    dateAppear: [{ type: Date, default: Date.now }],
     address: AddressSchema,
-    authorize: { type: String, enum: ["ทหาร", "ตัวแทน", "ภรรยา", "ทายาท"] },
     soldierNo: String,
     war: {
       type: String,
@@ -38,7 +36,14 @@ const CustomerSchema = new mongoose.Schema(
         "ฝรั่งเศส"
       ]
     },
-    signature: String
+    verifies: [
+      {
+        dateAppear: { type: Date, default: Date.now },
+        authorizeName: String,
+        authorize: { type: String, enum: ["ทหาร", "ตัวแทน", "ภรรยา", "ทายาท"] },
+        signature: String
+      }
+    ]
   },
   { timestamps: true }
 );

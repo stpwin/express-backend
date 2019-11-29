@@ -62,6 +62,34 @@ router.get(
   }
 );
 
+router.put(
+  "/verify/:peaId",
+  auth.required,
+  userController.getUser,
+  userController.grantAccess("updateAny"),
+  customerController.checkVerifyBody,
+  customerController.getCustomerByPeaId,
+  (req, res, next) => {
+    const customer = req.customer;
+
+    const verifyData = req.body.verify;
+    const signatureData = req.body.signatureBase64;
+
+    if (isValid(verifyData)) {
+      customer.verifies.push({
+        ...verifyData,
+        signature: saveSignatureToFile(signatureData, customer.peaId)
+      });
+    }
+
+    return customer.save().then(() => {
+      return res.json({
+        status: "verify updated"
+      });
+    });
+  }
+);
+
 //update a customer by peaId
 router.put(
   "/:peaId",
@@ -130,14 +158,7 @@ router.put(
       customer.peaId = customerData.peaId;
       updates.push("peaId");
     }
-    if (isValid(customerData.dateAppear)) {
-      customer.dateAppear.push(customerData.dateAppear);
-      updates.push("dateAppear");
-    }
-    if (isValid(customerData.authorize)) {
-      customer.authorize = customerData.authorize;
-      updates.push("authorize");
-    }
+
     if (isValid(customerData.soldierNo)) {
       customer.soldierNo = customerData.soldierNo;
       updates.push("soldierNo");
@@ -146,11 +167,6 @@ router.put(
     if (isValid(customerData.war)) {
       customer.war = customerData.war;
       updates.push("war");
-    }
-
-    if (isValid(customerData.signature)) {
-      customer.signature = customerData.signature;
-      updates.push("signature");
     }
 
     return customer.save().then(() => {
@@ -162,6 +178,18 @@ router.put(
   }
 );
 
+const saveSignatureToFile = (base64Data, fileName) => {
+  if (!base64Data) return "";
+  const signatureFileName = `${fileName}_${Date.now()}.png`;
+  signatureFullPath = path.join(signaturePath, signatureFileName);
+  base64Data = base64Data.replace(/^data:([A-Za-z-+/]+);base64,/, "");
+  fs.writeFileSync(signatureFullPath, base64Data, {
+    encoding: "base64"
+  });
+  return signatureFileName;
+  console.log("Write base64 to file.");
+};
+
 //create a new customer
 router.post(
   "/",
@@ -170,7 +198,10 @@ router.post(
   userController.grantAccess("createAny"),
   (req, res, next) => {
     // console.log(req.body)
-    if (typeof req.body.customer === "undefined" || typeof req.body.customer.address === "undefined") {
+    if (
+      typeof req.body.customer === "undefined" ||
+      typeof req.body.customer.address === "undefined"
+    ) {
       return res.sendStatus(400);
     }
     // console.log(req.body);
@@ -198,25 +229,9 @@ router.post(
 
     customer.address = address;
 
-    const signatureData = req.body.customer.signatureBase64;
-    let base64Data;
-    let signatureFullPath;
-    if (signatureData) {
-      const signatureFileName = `${customer.peaId}_${Date.now()}.png`;
-      signatureFullPath = path.join(signaturePath, signatureFileName);
-      customer.signature = signatureFileName;
-      base64Data = signatureData.replace(/^data:([A-Za-z-+/]+);base64,/, "");
-    }
-
     customer
       .save()
       .then(() => {
-        if (base64Data) {
-          fs.writeFileSync(signatureFullPath, base64Data, {
-            encoding: "base64"
-          });
-          console.log("Write base64 to file.");
-        }
         res.json({
           status: "success"
         });
