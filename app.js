@@ -33,9 +33,15 @@ app.use(
   })
 );
 
-mongoose.connect(mongoDBUri).then(() => {
-  console.log("Connected to the Database successfully");
-});
+mongoose
+  .connect(mongoDBUri, {
+    useCreateIndex: true,
+    useNewUrlParser: true,
+    useUnifiedTopology: true
+  })
+  .then(() => {
+    console.log("Connected to the Database successfully");
+  });
 
 require("./models/User");
 require("./models/Customer");

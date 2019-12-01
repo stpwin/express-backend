@@ -62,6 +62,14 @@ router.get(
   }
 );
 
+const verifyCustomer = (customer, verifyData) => {
+  customer.verifies.push({
+    ...verifyData,
+    signature: saveSignatureToFile(verifyData.signatureBase64, customer.peaId)
+  });
+  return customer.save();
+};
+
 router.put(
   "/verify/:peaId",
   auth.required,
@@ -72,17 +80,11 @@ router.put(
   (req, res, next) => {
     const customer = req.customer;
 
-    const verifyData = req.body.verify;
-    const signatureData = req.body.signatureBase64;
-
-    if (isValid(verifyData)) {
-      customer.verifies.push({
-        ...verifyData,
-        signature: saveSignatureToFile(signatureData, customer.peaId)
-      });
+    if (!isValid(req.body.verify)) {
+      return req.status(400);
     }
 
-    return customer.save().then(() => {
+    return verifyCustomer(customer, req.body.verify).then(() => {
       return res.json({
         status: "verify updated"
       });
@@ -108,33 +110,9 @@ router.put(
         customer.address.houseNo = customerData.address.houseNo;
         updates.push("address.houseNo");
       }
-
-      if (isValid(customerData.address.village)) {
-        customer.address.village = customerData.address.village;
-        updates.push("address.village");
-      }
-
-      if (isValid(customerData.address.roomNo)) {
-        customer.address.roomNo = customerData.address.roomNo;
-        updates.push("address.roomNo");
-      }
-
-      if (isValid(customerData.address.classNo)) {
-        customer.address.classNo = customerData.address.classNo;
-        updates.push("address.classNo");
-      }
-
       if (isValid(customerData.address.mooNo)) {
         customer.address.mooNo = customerData.address.mooNo;
         updates.push("address.mooNo");
-      }
-      if (isValid(customerData.address.alleyway)) {
-        customer.address.alleyway = customerData.address.alleyway;
-        updates.push("address.alleyway");
-      }
-      if (isValid(customerData.address.soi)) {
-        customer.address.soi = customerData.address.soi;
-        updates.push("address.soi");
       }
       if (isValid(customerData.address.districtNo)) {
         customer.address.districtNo = customerData.address.districtNo;
@@ -153,10 +131,6 @@ router.put(
     if (isValid(customerData.lastName)) {
       customer.lastName = customerData.lastName;
       updates.push("lastName");
-    }
-    if (isValid(customerData.peaId)) {
-      customer.peaId = customerData.peaId;
-      updates.push("peaId");
     }
 
     if (isValid(customerData.soldierNo)) {
@@ -187,7 +161,6 @@ const saveSignatureToFile = (base64Data, fileName) => {
     encoding: "base64"
   });
   return signatureFileName;
-  console.log("Write base64 to file.");
 };
 
 //create a new customer
@@ -200,7 +173,8 @@ router.post(
     // console.log(req.body)
     if (
       typeof req.body.customer === "undefined" ||
-      typeof req.body.customer.address === "undefined"
+      typeof req.body.customer.address === "undefined" ||
+      typeof req.body.verify === "undefined"
     ) {
       return res.sendStatus(400);
     }
@@ -210,27 +184,19 @@ router.post(
     const address = new Address();
 
     address.houseNo = req.body.customer.address.houseNo;
-    // address.village = req.body.customer.address.village;
-    // address.roomNo = req.body.customer.address.roomNo;
-    // address.classNo = req.body.customer.address.classNo;
     address.mooNo = req.body.customer.address.mooNo;
-    // address.alleyway = req.body.customer.address.alleyway;
-    // address.soi = req.body.customer.address.soi;
     address.districtNo = req.body.customer.address.districtNo;
+    customer.address = address;
 
     customer.title = req.body.customer.title;
     customer.firstName = req.body.customer.firstName;
     customer.lastName = req.body.customer.lastName;
     customer.peaId = req.body.customer.peaId;
-    customer.dateAppear.push(req.body.customer.dateAppear);
-    customer.authorize = req.body.customer.authorize;
     customer.soldierNo = req.body.customer.soldierNo;
     customer.war = req.body.customer.war;
+    customer.privilegeDate = new Date();
 
-    customer.address = address;
-
-    customer
-      .save()
+    return verifyCustomer(customer, req.body.verify)
       .then(() => {
         res.json({
           status: "success"

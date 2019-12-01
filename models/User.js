@@ -15,6 +15,12 @@ const UserSchema = new mongoose.Schema(
       match: [/^[a-zA-Z0-9]+$/, "is invalid"],
       index: true
     },
+    displayName: {
+      type: String,
+      lowercase: true,
+      unique: true,
+      required: [true, "can't be blank"]
+    },
     email: {
       type: String,
       lowercase: true,
@@ -30,7 +36,6 @@ const UserSchema = new mongoose.Schema(
       default: "basic",
       enum: ["supervisor", "administrator"]
     },
-    level: Number,
     hash: String,
     salt: String
   },
@@ -77,6 +82,7 @@ UserSchema.methods.toAuthJSON = function() {
     username: this.username,
     email: this.email,
     token: this.generateJWT(),
+    displayName: this.displayName,
     bio: this.bio,
     image: this.image,
     level: this.level,
