@@ -13,26 +13,80 @@ const Address = mongoose.model("Address");
 
 //list all customers
 router.get(
-  "/?:pageNo?",
+  "/filter/:filter/:pageNo/:perPage",
   auth.required,
   userController.getUser,
   userController.grantAccess("readAny"),
   (req, res, next) => {
-    let perPage = req.body.perPage || 50;
+    let perPage = parseInt(req.params.perPage) || 50;
+    let pageNo = parseInt(req.params.pageNo) || 1;
+    const filter = req.params.filter;
+
     if (perPage > 200) {
       perPage = 200;
     }
-    let pageNo = parseInt(req.params.pageNo) || 1;
 
-    Customer.count()
+    console.log("perPage:", perPage);
+    console.log("pageNo:", pageNo);
+    Customer.countDocuments()
       .then(count => {
-        const pages = parseInt(count / perPage) || 1;
+        const pages = Math.ceil(count / perPage) || 1;
         if (pageNo > pages) {
           pageNo = pages;
         }
-        const skip = (pageNo - 1) * perPage;
+        const offset = (pageNo - 1) * perPage;
+        console.log("count:", count);
+        console.log("pages:", pages);
+        console.log("offset:", offset);
+        Customer.find({
+          $or: [{ peaId: filter }, { firstName: filter }, { lastName: filter }]
+        })
+          .skip(offset)
+          .limit(perPage)
+          .then(customers => {
+            // console.log(customers);
+            return res.json({
+              customers: customers,
+              // count: count,
+              pageNo: pageNo,
+              // perPage: perPage,
+              pages: pages
+            });
+          })
+          .catch(next);
+      })
+      .catch(next);
+  }
+);
+
+//list all customers
+router.get(
+  "/all/?:pageNo?/?:perPage?",
+  auth.required,
+  userController.getUser,
+  userController.grantAccess("readAny"),
+  (req, res, next) => {
+    let perPage = parseInt(req.params.perPage) || 50;
+    let pageNo = parseInt(req.params.pageNo) || 1;
+
+    if (perPage > 200) {
+      perPage = 200;
+    }
+
+    console.log("perPage:", perPage);
+    console.log("pageNo:", pageNo);
+    Customer.countDocuments()
+      .then(count => {
+        const pages = Math.ceil(count / perPage) || 1;
+        if (pageNo > pages) {
+          pageNo = pages;
+        }
+        const offset = (pageNo - 1) * perPage;
+        console.log("count:", count);
+        console.log("pages:", pages);
+        console.log("offset:", offset);
         Customer.find({})
-          .skip(skip)
+          .skip(offset)
           .limit(perPage)
           .then(customers => {
             // console.log(customers);
