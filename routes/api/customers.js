@@ -11,51 +11,86 @@ const fs = require("fs");
 const Customer = mongoose.model("Customer");
 const Address = mongoose.model("Address");
 
-//list all customers
+//list fill customers
 router.get(
-  "/filter/:filter/:pageNo/:perPage",
+  "/filter/:filterText/:war?/?:pageNo?/?:perPage?",
   auth.required,
   userController.getUser,
   userController.grantAccess("readAny"),
   (req, res, next) => {
+    const filterText = req.params.filterText;
+    const war = req.params.war;
     let perPage = parseInt(req.params.perPage) || 50;
     let pageNo = parseInt(req.params.pageNo) || 1;
-    const filter = req.params.filter;
 
     if (perPage > 200) {
       perPage = 200;
     }
 
-    console.log("perPage:", perPage);
-    console.log("pageNo:", pageNo);
-    Customer.countDocuments()
-      .then(count => {
-        const pages = Math.ceil(count / perPage) || 1;
+    const queries = [];
+    let warFilters = {};
+    if (war && war !== "*") {
+      const wars = war.split(",");
+      console.log(wars);
+      warFilters = { war: { $in: wars } };
+    }
+
+    if (filterText.match(/[A-zก-์]/g)) {
+      queries.push({ firstName: { $regex: filterText, $options: "i" } });
+      queries.push({ lastName: { $regex: filterText, $options: "i" } });
+    } else if (filterText.match(/[0-9]/g)) {
+      queries.push({ peaId: { $regex: filterText, $options: "i" } });
+    } else {
+      return res.status(204).json({
+        error: "No content"
+      });
+    }
+    // console.log(queries);
+    console.log("Filter:", filterText);
+    console.log("War:", war);
+    console.log("Page:", pageNo);
+    console.log("Limit:", perPage);
+
+    const offset = (pageNo - 1) * perPage;
+    Customer.aggregate(
+      [
+        {
+          $match: {
+            $or: queries,
+            ...warFilters
+          }
+        },
+        // { $sort: {} },
+        {
+          $facet: {
+            metadata: [{ $count: "total" }, { $addFields: { page: pageNo } }],
+            data: [{ $skip: offset }, { $limit: perPage }]
+          }
+        }
+      ],
+      (err, docs) => {
+        // console.log("Result:", docs);
+        if (!docs[0] || !docs[0].metadata[0]) {
+          console.log(docs[0].metadata);
+          return res.status(204).json({
+            error: "No content"
+          });
+        }
+
+        const pages = Math.ceil(docs[0].metadata[0].total / perPage) || 1;
+
         if (pageNo > pages) {
           pageNo = pages;
         }
-        const offset = (pageNo - 1) * perPage;
-        console.log("count:", count);
-        console.log("pages:", pages);
-        console.log("offset:", offset);
-        Customer.find({
-          $or: [{ peaId: filter }, { firstName: filter }, { lastName: filter }]
-        })
-          .skip(offset)
-          .limit(perPage)
-          .then(customers => {
-            // console.log(customers);
-            return res.json({
-              customers: customers,
-              // count: count,
-              pageNo: pageNo,
-              // perPage: perPage,
-              pages: pages
-            });
-          })
-          .catch(next);
-      })
-      .catch(next);
+        return res.status(200).json({
+          metadata: {
+            page: pageNo,
+            pages: pages
+          },
+          customers: docs[0].data
+        });
+      }
+    );
   }
 );
 
@@ -92,10 +127,10 @@ router.get(
             // console.log(customers);
             return res.json({
               customers: customers,
-              // count: count,
-              pageNo: pageNo,
-              // perPage: perPage,
-              pages: pages
+              metadata: {
+                page: pageNo,
+                pages: pages
+              }
             });
           })
           .catch(next);
