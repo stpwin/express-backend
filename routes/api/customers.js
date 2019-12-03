@@ -13,18 +13,19 @@ const Address = mongoose.model("Address");
 
 //list fill customers
 router.get(
-  "/filter/:filterText/:war?/?:pageNo?/?:perPage?",
+  //"/filter/:filterText/:war?/?:pageNo?/?:perPage?",
+  "/filter/:filterText?/", //?war=*&page=1&limit=10
   auth.required,
   userController.getUser,
   userController.grantAccess("readAny"),
   (req, res, next) => {
     const filterText = req.params.filterText;
-    const war = req.params.war;
-    let perPage = parseInt(req.params.perPage) || 50;
-    let pageNo = parseInt(req.params.pageNo) || 1;
+    const war = req.query.war;
+    let limit = parseInt(req.query.limit) || 50;
+    let page = parseInt(req.query.page) || 1;
 
-    if (perPage > 200) {
-      perPage = 200;
+    if (limit > 200) {
+      limit = 200;
     }
 
     const queries = [];
@@ -48,10 +49,10 @@ router.get(
     // console.log(queries);
     console.log("Filter:", filterText);
     console.log("War:", war);
-    console.log("Page:", pageNo);
-    console.log("Limit:", perPage);
+    console.log("Page:", page);
+    console.log("Limit:", limit);
 
-    const offset = (pageNo - 1) * perPage;
+    const offset = (page - 1) * limit;
     Customer.aggregate(
       [
         {
@@ -63,8 +64,8 @@ router.get(
         // { $sort: {} },
         {
           $facet: {
-            metadata: [{ $count: "total" }, { $addFields: { page: pageNo } }],
-            data: [{ $skip: offset }, { $limit: perPage }]
+            metadata: [{ $count: "total" }, { $addFields: { page: page } }],
+            data: [{ $skip: offset }, { $limit: limit }]
           }
         }
       ],
@@ -77,14 +78,14 @@ router.get(
           });
         }
 
-        const pages = Math.ceil(docs[0].metadata[0].total / perPage) || 1;
+        const pages = Math.ceil(docs[0].metadata[0].total / limit) || 1;
 
-        if (pageNo > pages) {
-          pageNo = pages;
+        if (page > pages) {
+          page = pages;
         }
         return res.status(200).json({
           metadata: {
-            page: pageNo,
+            page: page,
             pages: pages
           },
           customers: docs[0].data
@@ -96,39 +97,46 @@ router.get(
 
 //list all customers
 router.get(
-  "/all/?:pageNo?/?:perPage?",
+  "/all?/", //?:pageNo?/?:perPage?
   auth.required,
   userController.getUser,
   userController.grantAccess("readAny"),
   (req, res, next) => {
-    let perPage = parseInt(req.params.perPage) || 50;
-    let pageNo = parseInt(req.params.pageNo) || 1;
+    let limit = parseInt(req.query.limit) || 50;
+    let page = parseInt(req.query.page) || 1;
+    const war = req.query.war;
 
-    if (perPage > 200) {
-      perPage = 200;
+    if (limit > 200) {
+      limit = 200;
     }
 
-    console.log("perPage:", perPage);
-    console.log("pageNo:", pageNo);
+    let query = {};
+    if (war && war !== "*") {
+      query = { war: { $in: war.split(",") } };
+    }
+
+    console.log("Page:", page);
+    console.log("Limit:", limit);
+
     Customer.countDocuments()
       .then(count => {
-        const pages = Math.ceil(count / perPage) || 1;
-        if (pageNo > pages) {
-          pageNo = pages;
+        const pages = Math.ceil(count / limit) || 1;
+        if (page > pages) {
+          page = pages;
         }
-        const offset = (pageNo - 1) * perPage;
-        console.log("count:", count);
-        console.log("pages:", pages);
-        console.log("offset:", offset);
-        Customer.find({})
+        const offset = (page - 1) * limit;
+        console.log("Count:", count);
+        console.log("Pages:", pages);
+        console.log("Offset:", offset);
+        Customer.find(query)
           .skip(offset)
-          .limit(perPage)
+          .limit(limit)
           .then(customers => {
             // console.log(customers);
             return res.json({
               customers: customers,
               metadata: {
-                page: pageNo,
+                page: page,
                 pages: pages
               }
             });
