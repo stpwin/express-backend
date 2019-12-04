@@ -22,37 +22,81 @@ router.get(
 
 //get all users
 router.get(
-  "/all?/:pageNo?",
+  "/all?/",
   auth.required,
   userController.getUser,
   userController.grantAccess("readAny"),
   (req, res, next) => {
-    let perPage = req.body.perPage || 50;
-    if (perPage > 200) {
-      perPage = 200;
+    let limit = parseInt(req.query.limit) || 50;
+    if (limit > 200) {
+      limit = 200;
     }
-    let pageNo = parseInt(req.params.pageNo) || 1;
+    let page = parseInt(req.query.page) || 1;
+    const offset = (page - 1) * limit;
+    const queries = [];
 
-    User.count()
-      .then(count => {
-        const pages = parseInt(count / perPage) || 1;
-        if (pageNo > pages) {
-          pageNo = pages;
+    User.aggregate(
+      [
+        {
+          $match: {
+            // $or: queries
+          }
+        },
+        // { $sort: {} },
+        {
+          $facet: {
+            metadata: [{ $count: "total" }, { $addFields: { page: page } }],
+            data: [{ $skip: offset }, { $limit: limit }]
+          }
         }
-        const skip = (pageNo - 1) * perPage;
-        User.find({})
-          .skip(skip)
-          .limit(perPage)
-          .then(users => {
-            return res.json({
-              users: users,
-              pageNo: pageNo,
-              pages: pages
-            });
-          })
-          .catch(next);
-      })
-      .catch(next);
+      ],
+      (err, docs) => {
+        // console.log("Result:", docs);
+        // return;
+        if (!docs[0] || !docs[0].metadata[0]) {
+          console.log(docs[0].metadata);
+          return res.status(204).json({
+            error: "No content"
+          });
+        }
+
+        const pages = Math.ceil(docs[0].metadata[0].total / limit) || 1;
+
+        if (page > pages) {
+          page = pages;
+        }
+
+        return res.status(200).json({
+          metadata: {
+            page: page,
+            pages: pages
+          },
+          users: docs[0].data
+        });
+      }
+    );
+
+    // User.count()
+    //   .then(count => {
+    //     const pages = parseInt(count / limit) || 1;
+    //     if (page > pages) {
+    //       page = pages;
+    //     }
+    //     const offset = (page - 1) * limit;
+
+    //     User.find({})
+    //       .skip(offset)
+    //       .limit(limit)
+    //       .then(users => {
+    //         return res.json({
+    //           users: users,
+    //           page: page,
+    //           pages: pages
+    //         });
+    //       })
+    //       .catch(next);
+    //   })
+    //   .catch(next);
   }
 );
 
@@ -97,7 +141,7 @@ router.put("/", auth.required, (req, res, next) => {
 
 router.post("/login", (req, res, next) => {
   //login
-  
+
   if (!req.body.user.username) {
     return res.status(422).json({ errors: { email: "can't be blank" } });
   }
@@ -106,13 +150,13 @@ router.post("/login", (req, res, next) => {
     return res.status(422).json({ errors: { password: "can't be blank" } });
   }
 
-  console.log(req.body.user)
+  console.log(req.body.user);
 
   passport.authenticate("local", { session: false }, (err, user, info) => {
     if (err) {
       return next(err);
     }
-    
+
     if (user) {
       user.token = user.generateJWT();
       return res.json(user.toAuthJSON());

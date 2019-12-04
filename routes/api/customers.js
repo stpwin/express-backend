@@ -32,7 +32,7 @@ router.get(
     let warFilters = {};
     if (war && war !== "*") {
       const wars = war.split(",");
-      console.log(wars);
+      // console.log(wars);
       warFilters = { war: { $in: wars } };
     }
 
@@ -105,6 +105,7 @@ router.get(
     let limit = parseInt(req.query.limit) || 50;
     let page = parseInt(req.query.page) || 1;
     const war = req.query.war;
+    const offset = (page - 1) * limit;
 
     if (limit > 200) {
       limit = 200;
@@ -117,33 +118,65 @@ router.get(
 
     console.log("Page:", page);
     console.log("Limit:", limit);
+    console.log("Offset:", offset);
 
-    Customer.countDocuments()
-      .then(count => {
-        const pages = Math.ceil(count / limit) || 1;
-        if (page > pages) {
-          page = pages;
+    Customer.aggregate(
+      [
+        {
+          $match: query
+        },
+        {
+          $facet: {
+            metadata: [{ $count: "total" }, { $addFields: { page: page } }],
+            data: [{ $skip: offset }, { $limit: limit }]
+          }
         }
-        const offset = (page - 1) * limit;
+      ],
+      (err, docs) => {
+        // console.log("Result:", docs);
+        if (!docs[0] || !docs[0].metadata[0]) {
+          console.log(docs[0].metadata);
+          return res.status(204).json({
+            error: "No content"
+          });
+        }
+        const count = docs[0].metadata[0].total;
+        const pages = Math.ceil(count / limit) || 1;
+        page = page > pages ? pages : page;
+
         console.log("Count:", count);
         console.log("Pages:", pages);
-        console.log("Offset:", offset);
-        Customer.find(query)
-          .skip(offset)
-          .limit(limit)
-          .then(customers => {
-            // console.log(customers);
-            return res.json({
-              customers: customers,
-              metadata: {
-                page: page,
-                pages: pages
-              }
-            });
-          })
-          .catch(next);
-      })
-      .catch(next);
+        console.log(docs[0].data);
+
+        return res.json({
+          customers: docs[0].data,
+          metadata: {
+            page: page,
+            pages: pages
+          }
+        });
+      }
+    ).catch(next);
+
+    // Customer.countDocuments()
+    //   .then(count => {
+
+    //     Customer.find(query)
+    //       .skip(offset)
+    //       .limit(limit)
+    //       .then(customers => {
+    //         // console.log(customers);
+    //         return res.json({
+    //           customers: customers,
+    //           metadata: {
+    //             page: page,
+    //             pages: pages
+    //           }
+    //         });
+    //       })
+    //       .catch(next);
+    //   })
+    //   .catch(next);
   }
 );
 
