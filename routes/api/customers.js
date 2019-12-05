@@ -273,6 +273,11 @@ router.put(
       updates.push("war");
     }
 
+    if (isValid(customerData.authorize)) {
+      customer.authorize = customerData.authorize;
+      updates.push("authorize");
+    }
+
     return customer.save().then(() => {
       return res.json({
         status: "updated",

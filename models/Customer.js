@@ -27,6 +27,8 @@ const CustomerSchema = new mongoose.Schema(
       // index: true
     },
     address: AddressSchema,
+    privilegeDate: { type: Date },
+    authorize: { type: String, enum: ["ทหาร", "ตัวแทน", "ภรรยา", "ทายาท"] },
     soldierNo: String,
     war: {
       type: String,
@@ -44,8 +46,6 @@ const CustomerSchema = new mongoose.Schema(
     verifies: [
       {
         dateAppear: { type: Date, default: Date.now },
-        authorizeName: String,
-        authorize: { type: String, enum: ["ทหาร", "ตัวแทน", "ภรรยา", "ทายาท"] },
         signature: String
       }
     ]
