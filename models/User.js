@@ -21,19 +21,19 @@ const UserSchema = new mongoose.Schema(
       unique: true,
       required: [true, "can't be blank"]
     },
-    email: {
-      type: String,
-      lowercase: true,
-      unique: true,
-      required: [true, "can't be blank"],
-      match: [/\S+@\S+\.\S+/, "is invalid"],
-      index: true
-    },
-    bio: String,
+    // email: {
+    //   type: String,
+    //   lowercase: true,
+    //   unique: true,
+    //   required: [true, "can't be blank"],
+    //   match: [/\S+@\S+\.\S+/, "is invalid"],
+    //   index: true
+    // },
+    description: String,
     image: String,
     role: {
       type: "string",
-      default: "basic",
+      default: "supervisor",
       enum: ["supervisor", "administrator"]
     },
     hash: String,

@@ -175,14 +175,16 @@ router.post(
   (req, res, next) => {
     const user = new User();
 
-    user.username = req.body.user.username;
-    user.email = req.body.user.email;
-    user.setPassword(req.body.user.password);
-    user.role = "supervisor";
+    user.username = req.body.username;
+    user.displayName = req.body.displayName;
+    user.description = req.body.description;
+    user.role = req.body.role;
+
+    user.setPassword(req.body.password);
 
     user
       .save()
-      .then(function() {
+      .then(() => {
         return res.status(201).json({ user: user.toAuthJSON() });
       })
       .catch(next);
