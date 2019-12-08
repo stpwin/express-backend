@@ -3,5 +3,5 @@ exports.isUndefined = varialble => {
 };
 
 exports.isValid = varialble => {
-  return !this.isUndefined(varialble);
+  return !this.isUndefined(varialble) && varialble;
 };

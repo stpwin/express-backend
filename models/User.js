@@ -17,9 +17,8 @@ const UserSchema = new mongoose.Schema(
     },
     displayName: {
       type: String,
-      lowercase: true,
-      unique: true,
       required: [true, "can't be blank"]
+      // index: true
     },
     // email: {
     //   type: String,
@@ -73,19 +72,13 @@ UserSchema.methods.generateJWT = function() {
   );
 };
 
-UserSchema.methods.setLevel = function(level) {
-  this.level = level;
-};
-
 UserSchema.methods.toAuthJSON = function() {
   return {
     username: this.username,
-    email: this.email,
     token: this.generateJWT(),
     displayName: this.displayName,
-    bio: this.bio,
+    description: this.description,
     image: this.image,
-    level: this.level,
     role: this.role
   };
 };
@@ -93,9 +86,8 @@ UserSchema.methods.toAuthJSON = function() {
 UserSchema.methods.toProfileJSONFor = function(user) {
   return {
     username: this.username,
-    bio: this.bio,
-    image:
-      this.image || "https://static.productionready.io/images/smiley-cyrus.jpg"
+    description: this.description,
+    image: this.image
   };
 };
 

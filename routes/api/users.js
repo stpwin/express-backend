@@ -20,9 +20,36 @@ router.get(
   }
 );
 
+router.get(
+  "/uid/:uid",
+  auth.required,
+  userController.getUser,
+  userController.grantAccess("readAny"),
+  (req, res, next) => {
+    const uid = req.params.uid;
+    if (typeof uid === "undefined") {
+      return res.sendStatus(400);
+    }
+
+    User.findById(uid)
+      .then(doc => {
+        return res.json({
+          username: doc.username,
+          displayName: doc.displayName,
+          description: doc.description,
+          role: doc.role
+        });
+      })
+      .catch(err => {
+        console.log(err);
+        return res.sendStatus(500);
+      });
+  }
+);
+
 //get all users
 router.get(
-  "/all?/",
+  "/all",
   auth.required,
   userController.getUser,
   userController.grantAccess("readAny"),
@@ -33,14 +60,11 @@ router.get(
     }
     let page = parseInt(req.query.page) || 1;
     const offset = (page - 1) * limit;
-    const queries = [];
 
     User.aggregate(
       [
         {
-          $match: {
-            // $or: queries
-          }
+          $match: {}
         },
         // { $sort: {} },
         {
@@ -51,13 +75,8 @@ router.get(
         }
       ],
       (err, docs) => {
-        // console.log("Result:", docs);
-        // return;
         if (!docs[0] || !docs[0].metadata[0]) {
-          console.log(docs[0].metadata);
-          return res.status(204).json({
-            error: "No content"
-          });
+          return res.sendStatus(204);
         }
 
         const pages = Math.ceil(docs[0].metadata[0].total / limit) || 1;
@@ -74,76 +93,133 @@ router.get(
           users: docs[0].data
         });
       }
-    );
+    ).catch(next);
+  }
+);
 
-    // User.count()
-    //   .then(count => {
-    //     const pages = parseInt(count / limit) || 1;
-    //     if (page > pages) {
-    //       page = pages;
-    //     }
-    //     const offset = (page - 1) * limit;
+//get filter users
+router.get(
+  "/filter/:filterText",
+  auth.required,
+  userController.getUser,
+  userController.grantAccess("readAny"),
+  (req, res, next) => {
+    const filter = req.params.filterText;
+    if (!filter) {
+      return res.sendStatus(204);
+    }
+    let limit = parseInt(req.query.limit) || 50;
+    if (limit > 200) {
+      limit = 200;
+    }
+    let page = parseInt(req.query.page) || 1;
+    const offset = (page - 1) * limit;
+    const queries = [];
 
-    //     User.find({})
-    //       .skip(offset)
-    //       .limit(limit)
-    //       .then(users => {
-    //         return res.json({
-    //           users: users,
-    //           page: page,
-    //           pages: pages
-    //         });
-    //       })
-    //       .catch(next);
-    //   })
-    //   .catch(next);
+    User.aggregate(
+      [
+        {
+          $match: {
+            $or: [
+              { displayName: { $regex: filter, $options: "i" } },
+              { username: { $regex: filter, $options: "i" } }
+            ]
+          }
+        },
+        {
+          $facet: {
+            metadata: [{ $count: "total" }, { $addFields: { page: page } }],
+            data: [{ $skip: offset }, { $limit: limit }]
+          }
+        }
+      ],
+      (err, docs) => {
+        if (!docs[0] || !docs[0].metadata[0]) {
+          // console.log(docs[0].metadata);
+          return res.sendStatus(204);
+        }
+
+        // console.log(docs[0].metadata[0].total);
+
+        const pages = Math.ceil(docs[0].metadata[0].total / limit) || 1;
+
+        if (page > pages) {
+          page = pages;
+        }
+
+        return res.status(200).json({
+          metadata: {
+            page: page,
+            pages: pages
+          },
+          users: docs[0].data
+        });
+      }
+    ).catch(next);
   }
 );
 
 //update user
-router.put("/", auth.required, (req, res, next) => {
-  User.findById(req.payload.id)
-    .then(function(user) {
-      if (!user) {
-        return res.sendStatus(401);
-      }
-
-      if (isValid(username)) {
-        user.username = req.body.user.username;
-      }
-      if (isValid(email)) {
-        user.email = req.body.user.email;
-      }
-      if (isValid(bio)) {
-        user.bio = req.body.user.bio;
-      }
-      if (isValid(image)) {
-        user.image = req.body.user.image;
-      }
-      if (isValid(oldPassword) && isValid(newPassword)) {
-        if (!req.body.user.oldPassword || !req.body.user.newPassword) {
-          return res
-            .status(422)
-            .json({ errors: { password: "can't be blank" } });
+router.put(
+  "/",
+  auth.required,
+  userController.getUser,
+  userController.grantAccess("updateAny"),
+  (req, res, next) => {
+    User.findById(req.body.payload.uid)
+      .then(doc => {
+        if (!doc) {
+          return res.sendStatus(204);
         }
-        if (!user.validPassword(req.body.user.oldPassword)) {
-          return res.status(422).json({ errors: { password: "mismatch" } });
-        }
-        user.setPassword(req.body.user.newPassword);
-      }
 
-      return user.save().then(() => {
-        return res.json({ user: user.toAuthJSON() });
-      });
-    })
-    .catch(next);
-});
+        const { user } = req.body;
+
+        if (isValid(user.username)) {
+          doc.username = user.username;
+        }
+
+        if (isValid(user.displayName)) {
+          doc.displayName = user.displayName;
+        }
+
+        if (isValid(user.description)) {
+          doc.description = user.description;
+        }
+
+        if (isValid(user.role)) {
+          doc.role = user.role;
+        }
+
+        if (isValid(user.password)) {
+          doc.setPassword(user.password);
+          // console.log("valid password");
+        }
+
+        // if (isValid(oldPassword) && isValid(newPassword)) {
+        //   if (!req.body.user.oldPassword || !req.body.user.newPassword) {
+        //     return res
+        //       .status(422)
+        //       .json({ errors: { password: "can't be blank" } });
+        //   }
+        //   if (!user.validPassword(req.body.user.oldPassword)) {
+        //     return res.status(422).json({ errors: { password: "mismatch" } });
+        //   }
+        //   user.setPassword(req.body.user.newPassword);
+        // }
+
+        return doc.save().then(() => {
+          return res.sendStatus(200);
+        });
+      })
+      .catch(next);
+  }
+);
 
 router.post("/login", (req, res, next) => {
   //login
 
   if (!req.body.user.username) {
-    return res.status(422).json({ errors: { email: "can't be blank" } });
+    return res.status(422).json({ errors: { username: "can't be blank" } });
   }
 
   if (!req.body.user.password) {
@@ -175,6 +251,30 @@ router.post(
   (req, res, next) => {
     const user = new User();
 
+    if (!req.body.username)
+      return res.status(422).json({ errors: { username: "can't be blank" } });
+    if (!req.body.displayName)
+      return res
+        .status(422)
+        .json({ errors: { displayName: "can't be blank" } });
+    if (!req.body.role)
+      return res.status(422).json({ errors: { role: "can't be blank" } });
+    if (!req.body.password)
+      return res.status(422).json({ errors: { password: "can't be blank" } });
+
+    if (req.body.username && req.body.username.length < 3)
+      return res
+        .status(422)
+        .json({ errors: { username: "require 3 character minimum" } });
+    if (req.body.displayName && req.body.displayName.length < 3)
+      return res
+        .status(422)
+        .json({ errors: { displayName: "require 3 character minimum" } });
+    if (req.body.password && req.body.password.length < 6)
+      return res
+        .status(422)
+        .json({ errors: { password: "require 6 character minimum" } });
+
     user.username = req.body.username;
     user.displayName = req.body.displayName;
     user.description = req.body.description;
@@ -197,7 +297,8 @@ router.delete(
   userController.getUser,
   userController.grantAccess("deleteAny"),
   (req, res, next) => {
-    let uid = req.body.userId;
+    const uid = req.body.uid;
+
     if (typeof uid === "undefined") {
       return res.sendStatus(400);
     }
@@ -211,19 +312,15 @@ router.delete(
         error: error
       });
     }
+
     // console.log(objId)
     User.findOneAndRemove({ _id: objId })
       .then(user => {
         console.log(user);
         if (!user) {
-          return res.status(204).json({
-            status: "user already gone"
-          });
+          return res.sendStatus(204);
         }
-        return res.status(204).json({
-          user: user,
-          status: "user deleted"
-        });
+        return res.sendStatus(204);
       })
       .catch(next);
   }

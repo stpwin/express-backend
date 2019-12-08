@@ -28,7 +28,11 @@ const CustomerSchema = new mongoose.Schema(
     },
     address: AddressSchema,
     privilegeDate: { type: Date },
-    authorize: { type: String, enum: ["ทหาร", "ตัวแทน", "ภรรยา", "ทายาท"] },
+    authorize: {
+      type: String,
+      enum: ["ทหาร", "ตัวแทน", "ภรรยา", "ทายาท"],
+      required: [true, "can't be blank"]
+    },
     soldierNo: String,
     war: {
       type: String,

@@ -42,9 +42,7 @@ router.get(
     } else if (filterText.match(/[0-9]/g)) {
       queries.push({ peaId: { $regex: filterText, $options: "i" } });
     } else {
-      return res.status(204).json({
-        error: "No content"
-      });
+      return res.sendStatus(204);
     }
     // console.log(queries);
     console.log("Filter:", filterText);
@@ -73,9 +71,7 @@ router.get(
         // console.log("Result:", docs);
         if (!docs[0] || !docs[0].metadata[0]) {
           console.log(docs[0].metadata);
-          return res.status(204).json({
-            error: "No content"
-          });
+          return res.sendStatus(204);
         }
 
         const pages = Math.ceil(docs[0].metadata[0].total / limit) || 1;
@@ -91,7 +87,7 @@ router.get(
           customers: docs[0].data
         });
       }
-    );
+    ).catch(next);
   }
 );
 
@@ -136,9 +132,7 @@ router.get(
         // console.log("Result:", docs);
         if (!docs[0] || !docs[0].metadata[0]) {
           console.log(docs[0].metadata);
-          return res.status(204).json({
-            error: "No content"
-          });
+          return res.sendStatus(204);
         }
         const count = docs[0].metadata[0].total;
         const pages = Math.ceil(count / limit) || 1;
@@ -193,11 +187,15 @@ router.get(
 );
 
 const verifyCustomer = (customer, verifyData) => {
+  const signatureFileName = `${customer.peaId}_${Date.now()}.png`;
   customer.verifies.push({
     ...verifyData,
-    signature: saveSignatureToFile(verifyData.signatureBase64, customer.peaId)
+    signature: signatureFileName
   });
-  return customer.save();
+  return customer.save().then(() => {
+    saveSignatureToFile(verifyData.signatureBase64, signatureFileName);
+    return true;
+  });
 };
 
 router.put(
@@ -211,14 +209,16 @@ router.put(
     const customer = req.customer;
 
     if (!isValid(req.body.verify)) {
-      return req.status(400);
+      return req.sendStatus(400);
     }
 
-    return verifyCustomer(customer, req.body.verify).then(() => {
-      return res.json({
-        status: "verify updated"
-      });
-    });
+    return verifyCustomer(customer, req.body.verify)
+      .then(() => {
+        return res.json({
+          status: "verify updated"
+        });
+      })
+      .catch(next);
   }
 );
 
@@ -278,24 +278,27 @@ router.put(
       updates.push("authorize");
     }
 
-    return customer.save().then(() => {
-      return res.json({
-        status: "updated",
-        updates: updates
-      });
-    });
+    return customer
+      .save()
+      .then(() => {
+        return res.json({
+          status: "updated",
+          updates: updates
+        });
+      })
+      .catch(next);
   }
 );
 
 const saveSignatureToFile = (base64Data, fileName) => {
   if (!base64Data) return "";
-  const signatureFileName = `${fileName}_${Date.now()}.png`;
-  signatureFullPath = path.join(signaturePath, signatureFileName);
+  // const signatureFileName = `${fileName}_${Date.now()}.png`;
+  signatureFullPath = path.join(signaturePath, fileName);
   base64Data = base64Data.replace(/^data:([A-Za-z-+/]+);base64,/, "");
   fs.writeFileSync(signatureFullPath, base64Data, {
     encoding: "base64"
   });
-  return signatureFileName;
+  return true;
 };
 
 //create a new customer
@@ -349,16 +352,12 @@ router.delete(
   (req, res, next) => {
     const peaId = req.params.peaId;
     if (typeof peaId === "undefined") {
-      return res.status(400).json({
-        error: "bad request"
-      });
+      return res.sendStatus(400);
     }
 
     Customer.findOneAndRemove({ peaId: peaId }).then(customer => {
       if (!customer) {
-        return res.status(410).json({
-          status: "gone"
-        });
+        return res.sendStatus(410);
       }
       return res.json({
         status: "deleted"
