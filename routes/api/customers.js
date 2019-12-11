@@ -70,7 +70,7 @@ router.get(
       (err, docs) => {
         // console.log("Result:", docs);
         if (!docs[0] || !docs[0].metadata[0]) {
-          console.log(docs[0].metadata);
+          // console.log(docs[0].metadata);
           return res.sendStatus(204);
         }
 
@@ -151,26 +151,6 @@ router.get(
         });
       }
     ).catch(next);
-
-    // Customer.countDocuments()
-    //   .then(count => {
-
-    //     Customer.find(query)
-    //       .skip(offset)
-    //       .limit(limit)
-    //       .then(customers => {
-    //         // console.log(customers);
-    //         return res.json({
-    //           customers: customers,
-    //           metadata: {
-    //             page: page,
-    //             pages: pages
-    //           }
-    //         });
-    //       })
-    //       .catch(next);
-    //   })
-    //   .catch(next);
   }
 );
 
@@ -182,6 +162,7 @@ router.get(
   userController.grantAccess("readAny"),
   customerController.getCustomerByPeaId,
   (req, res, next) => {
+    // console.log(req.customer.verifies[8].privilegeDate);
     return res.json(req.customer);
   }
 );
