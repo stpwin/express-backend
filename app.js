@@ -18,8 +18,9 @@ app.use(cors());
 
 // Normal express config defaults
 app.use(require("morgan")("dev"));
+
+app.use(bodyParser.json()); ////Fix this
 app.use(bodyParser.urlencoded({ extended: false }));
-app.use(bodyParser.json());
 
 app.use(require("method-override")());
 app.use(express.static(__dirname + "/public"));
