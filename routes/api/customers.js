@@ -104,7 +104,7 @@ router.get(
 
 //list all customers
 router.get(
-  "/all?/", //?:pageNo?/?:perPage?
+  "/all", //?:pageNo?/?:perPage?
   auth.required,
   userController.getUser,
   userController.grantAccess("readAny"),
@@ -190,34 +190,34 @@ const verifyCustomer = (customer, verifyData) => {
   });
 };
 
-router.put(
-  "/verify/:peaId",
-  auth.required,
-  upload.single("signatures"),
-  // userController.getUser,
-  // userController.grantAccess("updateAny"),
-  // customerController.checkVerifyBody,
-  // customerController.getCustomerByPeaId,
-  (req, res, next) => {
-    // const customer = req.customer;
-    console.log(req.body);
+// router.put(
+//   "/verify/:peaId",
+//   auth.required,
+//   upload.single("signatures"),
+//   // userController.getUser,
+//   // userController.grantAccess("updateAny"),
+//   // customerController.checkVerifyBody,
+//   // customerController.getCustomerByPeaId,
+//   (req, res, next) => {
+//     // const customer = req.customer;
+//     console.log(req.body);
 
-    res.sendStatus(200);
+//     res.sendStatus(200);
 
-    return;
-    if (!isValid(req.body.verify)) {
-      return req.sendStatus(400);
-    }
+//     return;
+//     if (!isValid(req.body.verify)) {
+//       return req.sendStatus(400);
+//     }
 
-    return verifyCustomer(customer, req.body.verify)
-      .then(() => {
-        return res.json({
-          status: "verify updated"
-        });
-      })
-      .catch(next);
-  }
-);
+//     return verifyCustomer(customer, req.body.verify)
+//       .then(() => {
+//         return res.json({
+//           status: "verify updated"
+//         });
+//       })
+//       .catch(next);
+//   }
+// );
 
 router.post(
   "/signature/upload/:peaId",
