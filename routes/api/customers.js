@@ -9,15 +9,6 @@ var path = require("path");
 const fs = require("fs");
 
 var multer = require("multer");
-var storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "/signatures");
-  },
-  filename: (req, file, cb) => {
-    cb(null, `${file.fieldname}-${Date.now()}`);
-  }
-});
-var upload = multer({ storage: storage });
 
 const Customer = mongoose.model("Customer");
 const Address = mongoose.model("Address");
@@ -190,61 +181,74 @@ const verifyCustomer = (customer, verifyData) => {
   });
 };
 
-// router.put(
-//   "/verify/:peaId",
-//   auth.required,
-//   upload.single("signatures"),
-//   // userController.getUser,
-//   // userController.grantAccess("updateAny"),
-//   // customerController.checkVerifyBody,
-//   // customerController.getCustomerByPeaId,
-//   (req, res, next) => {
-//     // const customer = req.customer;
-//     console.log(req.body);
+var storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "signatures");
+  },
+  filename: (req, file, cb) => {
+    cb(null, `${file.fieldname}-${req.customer.peaId}-${Date.now()}.png`);
+  }
+});
+var upload = multer({ storage: storage });
 
-//     res.sendStatus(200);
-
-//     return;
-//     if (!isValid(req.body.verify)) {
-//       return req.sendStatus(400);
-//     }
-
-//     return verifyCustomer(customer, req.body.verify)
-//       .then(() => {
-//         return res.json({
-//           status: "verify updated"
-//         });
-//       })
-//       .catch(next);
-//   }
-// );
-
-router.post(
-  "/signature/upload/:peaId",
+router.put(
+  "/verify/:peaId",
   auth.required,
   userController.getUser,
   userController.grantAccess("updateAny"),
+  // customerController.checkVerifyBody,
   customerController.getCustomerByPeaId,
-  (res, req, next) => {
-    upload(req, res, err => {
-      if (err instanceof multer.MulterError) {
-        console.error("MulterError", err);
-      } else if (err) {
-        console.error(err);
-      }
+  upload.single("signature"),
+  (req, res, next) => {
+    // const customer = req.customer;
+    // console.log("header", req.headers);
+    console.log("dateAppear:", req.body.dateAppear);
+    console.log("privilegeDate:", req.body.privilegeDate);
+    console.log("file", req.file);
 
-      if (err) {
-        req.status(500).json({ errors: err });
-      }
+    res.sendStatus(400);
 
-      console.log("upload success");
+    return;
+    if (!isValid(req.body.verify)) {
+      return req.sendStatus(400);
+    }
 
-      req.json({
-        status: "success"
-      });
-    });
+    return verifyCustomer(customer, req.body.verify)
+      .then(() => {
+        return res.json({
+          status: "verify updated"
+        });
+      })
+      .catch(next);
   }
 );
+
+// router.post(
+//   "/signature/upload/:peaId",
+//   auth.required,
+//   userController.getUser,
+//   userController.grantAccess("updateAny"),
+//   customerController.getCustomerByPeaId,
+//   (res, req, next) => {
+//     upload(req, res, err => {
+//       if (err instanceof multer.MulterError) {
+//         console.error("MulterError", err);
+//       } else if (err) {
+//         console.error(err);
+//       }
+
+//       if (err) {
+//         req.status(500).json({ errors: err });
+//       }
+
+//       console.log("upload success");
+
+//       req.json({
+//         status: "success"
+//       });
+//     });
+//   }
+// );
 
 //update a customer by peaId
 router.put(

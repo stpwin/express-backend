@@ -1,29 +1,39 @@
 const router = require("express").Router();
+const mongoose = require("mongoose");
 const auth = require("../auth");
+var path = require("path");
+
+const customerController = require("../../controllers/customerController");
+const userController = require("../../controllers/userController");
+
+const Customer = mongoose.model("Customer");
 
 var multer = require("multer");
 var storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, "/signatures");
+    cb(null, "signatures");
   },
   filename: (req, file, cb) => {
-    cb(null, `${file.fieldname}-${Date.now()}`);
+    cb(null, `${file.fieldname}-${req.customer.peaId}-${Date.now()}.png`);
   }
 });
 var upload = multer({ storage: storage });
 
 router.post(
   "/:peaId",
-  //   auth.required,
-  //   upload.single("signature"),
-  // userController.getUser,
-  // userController.grantAccess("updateAny"),
-  // customerController.checkVerifyBody,
-  // customerController.getCustomerByPeaId,
+  auth.required,
+  userController.getUser,
+  userController.grantAccess("updateAny"),
+  customerController.checkVerifyBody,
+  customerController.getCustomerByPeaId,
+  upload.single("signature"),
   (req, res, next) => {
     // const customer = req.customer;
+
+    // console.log("header", req.headers);
+    console.log("dateAppear", req.body.dateAppear);
+    console.log("privilegeDate", req.body.privilegeDate);
     console.log("file", req.file);
-    console.log("body", req.headers);
 
     res.sendStatus(500);
 

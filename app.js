@@ -21,8 +21,6 @@ app.use(cors());
 // Normal express config defaults
 app.use(require("morgan")("dev"));
 
-app.use("/api/customers/verify", require("./routes/api/verifyCustomer"));
-
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json()); ////Fix this
 
@@ -54,6 +52,7 @@ require("./models/Customer");
 require("./config/passport");
 
 app.use(require("./routes"));
+// app.use("/api/customers/verify", require("./routes/api/verifyCustomer"));
 
 if (!isProduction) {
   app.use(errorhandler());
