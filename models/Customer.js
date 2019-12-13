@@ -7,6 +7,16 @@ const AddressSchema = new mongoose.Schema({
   districtNo: String
 });
 
+const VerifySchema = new mongoose.Schema({
+  dateAppear: {
+    type: Date,
+    require: [true, "can't be blank"],
+    default: Date.now
+  },
+  privilegeDate: { type: Date, require: [true, "can't be blank"] },
+  signature: { type: String, require: [true, "can't be blank"] }
+});
+
 const CustomerSchema = new mongoose.Schema(
   {
     title: String,
@@ -46,13 +56,7 @@ const CustomerSchema = new mongoose.Schema(
       required: [true, "can't be blank"]
       // index: true
     },
-    verifies: [
-      {
-        privilegeDate: { type: Date },
-        dateAppear: { type: Date, default: Date.now },
-        signature: String
-      }
-    ]
+    verifies: [VerifySchema]
   },
   { timestamps: true }
 );
@@ -62,5 +66,6 @@ CustomerSchema.index({ firstName: "text", lastName: "text", peaId: "text" });
 
 CustomerSchema.plugin(uniqueValidator, { message: "is already taken." });
 
+mongoose.model("Verify", VerifySchema);
 mongoose.model("Address", AddressSchema);
 mongoose.model("Customer", CustomerSchema);

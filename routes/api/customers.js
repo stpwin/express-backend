@@ -169,17 +169,35 @@ router.get(
   }
 );
 
-const verifyCustomer = (customer, verifyData) => {
-  const signatureFileName = `${customer.peaId}_${Date.now()}.png`;
-  customer.verifies.push({
-    ...verifyData,
-    signature: signatureFileName
-  });
-  return customer.save().then(() => {
-    saveSignatureToFile(verifyData.signatureBase64, signatureFileName);
-    return true;
-  });
-};
+router.get(
+  "/signature/:peaId/:verifyId",
+  auth.required,
+  userController.getUser,
+  userController.grantAccess("readAny"),
+  customerController.getCustomerSignature,
+  (req, res, next) => {
+    console.log(req.customer);
+    res.json(req.customer);
+  }
+);
+
+// const verifyCustomer = (customer, verify) => {
+//   customer.verifies.push(verify);
+//   return customer.save().then(() => {
+//     // saveSignatureToFile(verifyData.signatureBase64, signatureFileName);
+//     return true;
+//   });
+// };
+
+// const verifyHasRequiredFields = fields => {
+//   const dateAppear = fields.dateAppear
+//     ? new Date(JSON.parse(fields.dateAppear))
+//     : null;
+//   const privilegeDate = fields.privilegeDate
+//     ? new Date(JSON.parse(fields.privilegeDate))
+//     : null;
+//   return dateAppear && privilegeDate;
+// };
 
 var storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -189,31 +207,38 @@ var storage = multer.diskStorage({
     cb(null, `${file.fieldname}-${req.customer.peaId}-${Date.now()}.png`);
   }
 });
-var upload = multer({ storage: storage });
+var upload = multer({
+  storage: storage,
+  fileFilter: (req, file, cb) => {
+    const dateAppear = req.body.dateAppear
+      ? new Date(JSON.parse(req.body.dateAppear))
+      : null;
+    const privilegeDate = req.body.privilegeDate
+      ? new Date(JSON.parse(req.body.privilegeDate))
+      : null;
+    if (dateAppear && privilegeDate) {
+      req.verify = { dateAppear, privilegeDate, signature: file.filename };
+      cb(null, true);
+      return;
+    }
+    cb(new Error("Expected object for argument options"), false);
+  }
+});
 
 router.put(
   "/verify/:peaId",
   auth.required,
   userController.getUser,
   userController.grantAccess("updateAny"),
-  // customerController.checkVerifyBody,
   customerController.getCustomerByPeaId,
   upload.single("signature"),
   (req, res, next) => {
-    // const customer = req.customer;
-    // console.log("header", req.headers);
-    console.log("dateAppear:", req.body.dateAppear);
-    console.log("privilegeDate:", req.body.privilegeDate);
+    console.log("verify:", req.verify);
     console.log("file", req.file);
 
-    res.sendStatus(400);
-
-    return;
-    if (!isValid(req.body.verify)) {
-      return req.sendStatus(400);
-    }
-
-    return verifyCustomer(customer, req.body.verify)
+    req.customer.verifies.push(req.verify);
+    req.customer
+      .save()
       .then(() => {
         return res.json({
           status: "verify updated"
