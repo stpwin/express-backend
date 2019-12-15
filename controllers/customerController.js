@@ -33,26 +33,32 @@ exports.getCustomerSignature = async (req, res, next) => {
   Customer.aggregate(
     [
       {
-        $match: { peaId: peaId }
-      },
-      {
         $unwind: "$verifies"
       },
       {
         $match: {
+          peaId: peaId,
           "verifies._id": mongoose.Types.ObjectId(verifyId)
         }
       },
       {
         $group: {
-          dateAppear: {
-            $first: "$dateAppear"
-          }
+          _id: "$verifies._id",
+          signature: { $first: "$verifies.signature" }
         }
       }
     ],
     (err, result) => {
-      console.log(result);
+      if (err) {
+        // console.log("error:", err);
+        next(err);
+      }
+
+      // console.log("result:", result);
+      if (result) {
+        req.signature = result[0].signature;
+      }
+      next();
     }
   );
 

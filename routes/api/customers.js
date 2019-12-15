@@ -5,10 +5,10 @@ const customerController = require("../../controllers/customerController");
 const userController = require("../../controllers/userController");
 const { isValid } = require("../../utils");
 const { signaturePath } = require("../../config");
-var path = require("path");
+const path = require("path");
 const fs = require("fs");
 
-var multer = require("multer");
+const multer = require("multer");
 
 const Customer = mongoose.model("Customer");
 const Address = mongoose.model("Address");
@@ -176,8 +176,26 @@ router.get(
   userController.grantAccess("readAny"),
   customerController.getCustomerSignature,
   (req, res, next) => {
-    console.log(req.customer);
-    res.json(req.customer);
+    console.log("signature:", req.signature);
+
+    var get_file_options = {
+      root: "signatures",
+      dotfiles: "deny",
+      headers: {
+        "x-timestamp": Date.now(),
+        "x-sent": true
+      }
+    };
+
+    res.sendfile(`${req.signature}`, get_file_options, err => {
+      if (err) {
+        // console.error("sendfile error:", err);
+        res.sendStatus(204);
+      }
+
+      console.log("sendfile success");
+    });
+    // res.json(req.signature);
   }
 );
 
@@ -217,7 +235,7 @@ var upload = multer({
       ? new Date(JSON.parse(req.body.privilegeDate))
       : null;
     if (dateAppear && privilegeDate) {
-      req.verify = { dateAppear, privilegeDate, signature: file.filename };
+      req.verify = { dateAppear, privilegeDate };
       cb(null, true);
       return;
     }
@@ -233,10 +251,10 @@ router.put(
   customerController.getCustomerByPeaId,
   upload.single("signature"),
   (req, res, next) => {
-    console.log("verify:", req.verify);
-    console.log("file", req.file);
-
-    req.customer.verifies.push(req.verify);
+    // console.log("verify:", req.verify);
+    // console.log("file", req.file);
+    const signature = req.file.filename
+    req.customer.verifies.push({ ...req.verify, signature });
     req.customer
       .save()
       .then(() => {
