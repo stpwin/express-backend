@@ -13,7 +13,7 @@ const VerifySchema = new mongoose.Schema({
     require: [true, "can't be blank"],
     default: Date.now
   },
-  privilegeDate: { type: Date, require: [true, "can't be blank"] },
+  privilegeDate: Date,
   signature: { type: String, require: [true, "can't be blank"] }
 });
 

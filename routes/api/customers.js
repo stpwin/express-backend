@@ -173,7 +173,7 @@ router.get(
   userController.grantAccess("readAny"),
   customerController.getCustomerSignature,
   (req, res, next) => {
-    console.log("signature:", req.signature);
+    // console.log("signature:", req.signature);
 
     var get_file_options = {
       root: "signatures",
@@ -184,7 +184,7 @@ router.get(
       }
     };
 
-    res.sendfile(`${req.signature}`, get_file_options, err => {
+    res.sendFile(`${req.signature}`, get_file_options, err => {
       if (err) {
         // console.error("sendfile error:", err);
         res.sendStatus(204);
@@ -228,10 +228,15 @@ var upload = multer({
     const appearDate = req.body.appearDate
       ? new Date(JSON.parse(req.body.appearDate))
       : null;
-    const privilegeDate = req.body.privilegeDate
-      ? new Date(JSON.parse(req.body.privilegeDate))
-      : null;
-    if (appearDate && privilegeDate) {
+
+    let privilegeDate;
+    if (req.body.privilegeDate) {
+      console.log("req.body.privilegeDate", req.body.privilegeDate)
+      console.log("WTFFFFFFFFFFFFFFFFFFFF", typeof req.body.privilegeDate)
+      privilegeDate = new Date(JSON.parse(req.body.privilegeDate))
+    }
+    console.log("privilegeDate", privilegeDate)
+    if (appearDate) {
       req.verify = { appearDate, privilegeDate };
       cb(null, true);
       return;
@@ -249,6 +254,7 @@ router.put(
   upload.single("signature"),
   (req, res, next) => {
     const signature = req.file.filename;
+    console.log(req.verify)
     req.customer.verifies.push({ ...req.verify, signature });
     req.customer
       .save()
