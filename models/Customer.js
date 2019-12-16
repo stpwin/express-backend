@@ -8,7 +8,7 @@ const AddressSchema = new mongoose.Schema({
 });
 
 const VerifySchema = new mongoose.Schema({
-  dateAppear: {
+  appearDate: {
     type: Date,
     require: [true, "can't be blank"],
     default: Date.now

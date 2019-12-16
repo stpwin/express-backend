@@ -34,7 +34,6 @@ router.get(
     let warFilters = {};
     if (war && war !== "*") {
       const wars = war.split(",");
-      // console.log(wars);
       warFilters = { war: { $in: wars } };
     }
 
@@ -46,7 +45,6 @@ router.get(
     } else {
       return res.sendStatus(204);
     }
-    // console.log(queries);
     console.log("Filter:", filterText);
     console.log("War:", war);
     console.log("Page:", page);
@@ -61,7 +59,6 @@ router.get(
             ...warFilters
           }
         },
-        // { $sort: {} },
         {
           $facet: {
             metadata: [{ $count: "total" }, { $addFields: { page: page } }],
@@ -208,13 +205,13 @@ router.get(
 // };
 
 // const verifyHasRequiredFields = fields => {
-//   const dateAppear = fields.dateAppear
-//     ? new Date(JSON.parse(fields.dateAppear))
+//   const appearDate = fields.appearDate
+//     ? new Date(JSON.parse(fields.appearDate))
 //     : null;
 //   const privilegeDate = fields.privilegeDate
 //     ? new Date(JSON.parse(fields.privilegeDate))
 //     : null;
-//   return dateAppear && privilegeDate;
+//   return appearDate && privilegeDate;
 // };
 
 var storage = multer.diskStorage({
@@ -228,14 +225,14 @@ var storage = multer.diskStorage({
 var upload = multer({
   storage: storage,
   fileFilter: (req, file, cb) => {
-    const dateAppear = req.body.dateAppear
-      ? new Date(JSON.parse(req.body.dateAppear))
+    const appearDate = req.body.appearDate
+      ? new Date(JSON.parse(req.body.appearDate))
       : null;
     const privilegeDate = req.body.privilegeDate
       ? new Date(JSON.parse(req.body.privilegeDate))
       : null;
-    if (dateAppear && privilegeDate) {
-      req.verify = { dateAppear, privilegeDate };
+    if (appearDate && privilegeDate) {
+      req.verify = { appearDate, privilegeDate };
       cb(null, true);
       return;
     }
@@ -251,15 +248,13 @@ router.put(
   customerController.getCustomerByPeaId,
   upload.single("signature"),
   (req, res, next) => {
-    // console.log("verify:", req.verify);
-    // console.log("file", req.file);
-    const signature = req.file.filename
+    const signature = req.file.filename;
     req.customer.verifies.push({ ...req.verify, signature });
     req.customer
       .save()
       .then(() => {
         return res.json({
-          status: "verify updated"
+          status: "verify_success"
         });
       })
       .catch(next);
@@ -302,8 +297,8 @@ router.put(
   customerController.checkUpdateBody,
   customerController.getCustomerByPeaId,
   (req, res, next) => {
-    const customerData = req.body.customer;
-    const customer = req.customer;
+    const { customer: customerData } = req.body;
+    const { customer } = req;
     const updates = [];
 
     if (isValid(customerData.address)) {
@@ -353,7 +348,7 @@ router.put(
       .save()
       .then(() => {
         return res.json({
-          status: "updated",
+          status: "update_success",
           updates: updates
         });
       })
@@ -379,36 +374,33 @@ router.post(
   userController.getUser,
   userController.grantAccess("createAny"),
   (req, res, next) => {
-    // console.log(req.body)
-    if (
-      typeof req.body.customer === "undefined" ||
-      typeof req.body.customer.address === "undefined" ||
-      typeof req.body.verify === "undefined"
-    ) {
+    const { customer: customerData } = req.body;
+    const { address: addressData } = customerData;
+    if (!customerData || !addressData) {
       return res.sendStatus(400);
     }
-    // console.log(req.body);
 
     const customer = new Customer();
     const address = new Address();
 
-    address.houseNo = req.body.customer.address.houseNo;
-    address.mooNo = req.body.customer.address.mooNo;
-    address.districtNo = req.body.customer.address.districtNo;
+    address.houseNo = addressData.houseNo;
+    address.mooNo = addressData.mooNo;
+    address.districtNo = addressData.districtNo;
     customer.address = address;
 
-    customer.title = req.body.customer.title;
-    customer.firstName = req.body.customer.firstName;
-    customer.lastName = req.body.customer.lastName;
-    customer.peaId = req.body.customer.peaId;
-    customer.soldierNo = req.body.customer.soldierNo;
-    customer.war = req.body.customer.war;
-    customer.privilegeDate = new Date();
+    customer.peaId = customerData.peaId;
+    customer.title = customerData.title;
+    customer.firstName = customerData.firstName;
+    customer.lastName = customerData.lastName;
+    customer.authorize = customerData.authorize;
+    customer.soldierNo = customerData.soldierNo;
+    customer.war = customerData.war;
 
-    return verifyCustomer(customer, req.body.verify)
+    customer
+      .save()
       .then(() => {
-        res.json({
-          status: "success"
+        return res.json({
+          status: "create_success"
         });
       })
       .catch(next);
@@ -426,14 +418,16 @@ router.delete(
       return res.sendStatus(400);
     }
 
-    Customer.findOneAndRemove({ peaId: peaId }).then(customer => {
-      if (!customer) {
-        return res.sendStatus(410);
-      }
-      return res.json({
-        status: "deleted"
-      });
-    });
+    Customer.findOneAndRemove({ peaId: peaId })
+      .then(customer => {
+        if (!customer) {
+          return res.sendStatus(410);
+        }
+        return res.json({
+          status: "deleted"
+        });
+      })
+      .catch(next);
   }
 );
 

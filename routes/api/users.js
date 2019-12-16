@@ -26,8 +26,8 @@ router.get(
   userController.getUser,
   userController.grantAccess("readAny"),
   (req, res, next) => {
-    const uid = req.params.uid;
-    if (typeof uid === "undefined") {
+    const { uid } = req.params;
+    if (!uid) {
       return res.sendStatus(400);
     }
 
@@ -40,10 +40,7 @@ router.get(
           role: doc.role
         });
       })
-      .catch(err => {
-        console.log(err);
-        return res.sendStatus(500);
-      });
+      .catch(next);
   }
 );
 
@@ -104,8 +101,8 @@ router.get(
   userController.getUser,
   userController.grantAccess("readAny"),
   (req, res, next) => {
-    const filter = req.params.filterText;
-    if (!filter) {
+    const { filterText } = req.params;
+    if (!filterText) {
       return res.sendStatus(204);
     }
     let limit = parseInt(req.query.limit) || 50;
@@ -121,8 +118,8 @@ router.get(
         {
           $match: {
             $or: [
-              { displayName: { $regex: filter, $options: "i" } },
-              { username: { $regex: filter, $options: "i" } }
+              { displayName: { $regex: filterText, $options: "i" } },
+              { username: { $regex: filterText, $options: "i" } }
             ]
           }
         },
@@ -161,18 +158,22 @@ router.get(
 
 //update user
 router.put(
-  "/",
+  "/:uid",
   auth.required,
   userController.getUser,
   userController.grantAccess("updateAny"),
   (req, res, next) => {
-    User.findById(req.body.payload.uid)
+    const { uid } = req.params;
+    const { user } = req.body;
+    console.log("body", req.body);
+
+    if (!uid || !user) return res.sendStatus(422);
+
+    User.findById(uid)
       .then(doc => {
         if (!doc) {
           return res.sendStatus(204);
         }
-
-        const { user } = req.body;
 
         if (isValid(user.username)) {
           doc.username = user.username;
@@ -192,23 +193,12 @@ router.put(
 
         if (isValid(user.password)) {
           doc.setPassword(user.password);
-          // console.log("valid password");
         }
 
-        // if (isValid(oldPassword) && isValid(newPassword)) {
-        //   if (!req.body.user.oldPassword || !req.body.user.newPassword) {
-        //     return res
-        //       .status(422)
-        //       .json({ errors: { password: "can't be blank" } });
-        //   }
-        //   if (!user.validPassword(req.body.user.oldPassword)) {
-        //     return res.status(422).json({ errors: { password: "mismatch" } });
-        //   }
-        //   user.setPassword(req.body.user.newPassword);
-        // }
-
         return doc.save().then(() => {
-          return res.sendStatus(200);
+          return res.json({
+            status: "success"
+          });
         });
       })
       .catch(next);
@@ -285,7 +275,9 @@ router.post(
     user
       .save()
       .then(() => {
-        return res.status(201).json({ user: user.toAuthJSON() });
+        return res
+          .status(201)
+          .json({ user: user.toAuthJSON(), status: "success" });
       })
       .catch(next);
   }
@@ -313,7 +305,6 @@ router.delete(
       });
     }
 
-    // console.log(objId)
     User.findOneAndRemove({ _id: objId })
       .then(user => {
         console.log(user);

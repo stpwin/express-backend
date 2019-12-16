@@ -82,20 +82,20 @@ exports.getCustomerSignature = async (req, res, next) => {
 exports.checkVerifyBody = async (req, res, next) => {
   // const verifyData = req.body.verify;
 
-  const dateAppear = req.body.dateAppear
-    ? new Date(JSON.parse(req.body.dateAppear))
+  const appearDate = req.body.appearDate
+    ? new Date(JSON.parse(req.body.appearDate))
     : null;
   const privilegeDate = req.body.privilegeDate
     ? new Date(JSON.parse(req.body.privilegeDate))
     : null;
 
-  console.log(dateAppear, privilegeDate);
-  if (!(dateAppear && privilegeDate)) {
+  console.log(appearDate, privilegeDate);
+  if (!(appearDate && privilegeDate)) {
     return res.status(400).json({
       error: "Bad request: No verify data"
     });
   }
-  res.verify = { dateAppear, privilegeDate };
+  res.verify = { appearDate, privilegeDate };
   next();
 };
 

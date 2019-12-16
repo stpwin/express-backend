@@ -31,7 +31,7 @@ router.post(
     // const customer = req.customer;
 
     // console.log("header", req.headers);
-    console.log("dateAppear", req.body.dateAppear);
+    console.log("appearDate", req.body.appearDate);
     console.log("privilegeDate", req.body.privilegeDate);
     console.log("file", req.file);
 
