@@ -10,11 +10,10 @@ const AddressSchema = new mongoose.Schema({
 const VerifySchema = new mongoose.Schema({
   appearDate: {
     type: Date,
-    require: [true, "can't be blank"],
+    require: [true, "วันที่แสดงตนไม่ควรว่าง"],
     default: Date.now
   },
-  privilegeDate: Date,
-  signature: { type: String, require: [true, "can't be blank"] }
+  signature: String
 });
 
 const CustomerSchema = new mongoose.Schema(
@@ -22,25 +21,25 @@ const CustomerSchema = new mongoose.Schema(
     title: String,
     firstName: {
       type: String,
-      required: [true, "can't be blank"]
+      required: [true, "ชื่อไม่ควรว่าง"]
       // index: true
     },
     lastName: {
       type: String,
-      required: [true, "can't be blank"]
+      required: [true, "นามสกุลไม่ควรว่าง"]
       // index: true
     },
     peaId: {
       type: String,
       unique: true,
-      required: [true, "can't be blank"]
+      required: [true, "รหัสผู้ใช้ไฟไม่ควรว่าง"]
       // index: true
     },
     address: AddressSchema,
     authorize: {
       type: String,
       enum: ["ทหาร", "ตัวแทน", "ภรรยา", "ทายาท"],
-      required: [true, "can't be blank"]
+      required: [true, "กรณีเป็นไม่ควรว่าง"]
     },
     soldierNo: String,
     war: {
@@ -53,10 +52,11 @@ const CustomerSchema = new mongoose.Schema(
         "อินโดจีน", //G2
         "ฝรั่งเศส" //G2
       ],
-      required: [true, "can't be blank"]
+      required: [true, "ลดสิทธิ์สงครามไม่ควรว่าง"]
       // index: true
     },
-    verifies: [VerifySchema]
+    verifies: [VerifySchema],
+    privilegeDate: Date
   },
   { timestamps: true }
 );
@@ -64,7 +64,7 @@ const CustomerSchema = new mongoose.Schema(
 //Needed for full-text search
 CustomerSchema.index({ firstName: "text", lastName: "text", peaId: "text" });
 
-CustomerSchema.plugin(uniqueValidator, { message: "is already taken." });
+CustomerSchema.plugin(uniqueValidator, { message: "รหัสผู้ใช้ไฟซ้ำกับในระบบ" });
 
 mongoose.model("Verify", VerifySchema);
 mongoose.model("Address", AddressSchema);

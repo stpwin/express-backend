@@ -8,15 +8,11 @@ router.use("/customers", require("./customers"));
 // router.use('/tags', require('./tags'));
 
 router.use((err, req, res, next) => {
-  // console.log("ERROR NAME:" ,err.name)
   if (err.name === "ValidationError") {
-    const errors = Object.keys(err.errors).reduce((errors, key) => {
-      errors[key] = err.errors[key].message;
-      return errors;
-    }, {})
-    console.warn(errors)
+    const error = Object.keys(err.errors).map(k => err.errors[k].message);
+
     return res.status(422).json({
-      errors: errors
+      error
     });
   }
 

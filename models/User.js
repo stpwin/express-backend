@@ -11,13 +11,13 @@ const UserSchema = new mongoose.Schema(
       type: String,
       lowercase: true,
       unique: true,
-      required: [true, "can't be blank"],
-      match: [/^[a-zA-Z0-9]+$/, "is invalid"],
+      required: [true, "Username ไม่ควรว่าง"],
+      match: [/^[a-zA-Z0-9]+$/, "Username ไม่ถูกต้อง"],
       index: true
     },
     displayName: {
       type: String,
-      required: [true, "can't be blank"]
+      required: [true, "ชื่อที่แสดงไม่ควรว่าง"]
       // index: true
     },
     // email: {
@@ -41,7 +41,7 @@ const UserSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-UserSchema.plugin(uniqueValidator, { message: "is already taken." });
+UserSchema.plugin(uniqueValidator, { message: "Username มีอยู่แล้ว" });
 
 UserSchema.methods.validPassword = function(password) {
   const hash = crypto

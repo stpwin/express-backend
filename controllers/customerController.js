@@ -16,6 +16,9 @@ exports.getCustomerByPeaId = async (req, res, next) => {
           error: "No customer found!"
         });
       }
+      customer.verifies.sort((a, b) => {
+        return new Date(b.appearDate) - new Date(a.appearDate);
+      });
       req.customer = customer;
       next();
     })
@@ -50,53 +53,15 @@ exports.getCustomerSignature = async (req, res, next) => {
     ],
     (err, result) => {
       if (err) {
-        // console.log("error:", err);
         next(err);
       }
 
-      // console.log("result:", result);
       if (result) {
         req.signature = result[0].signature;
       }
       next();
     }
   );
-
-  // Customer.findOne({
-  //   peaId: peaId,
-  //   verifies: { $elemMatch: { _id: mongoose.Types.ObjectId(verifyId) } }
-  // })
-  //   .select("verifies")
-  //   .then(customer => {
-  //     if (!customer) {
-  //       return res.status(204).json({
-  //         error: "No customer found!"
-  //       });
-  //     }
-  //     req.customer = customer;
-  //     next();
-  //   })
-  //   .catch(next);
-};
-
-exports.checkVerifyBody = async (req, res, next) => {
-  // const verifyData = req.body.verify;
-
-  const appearDate = req.body.appearDate
-    ? new Date(JSON.parse(req.body.appearDate))
-    : null;
-  const privilegeDate = req.body.privilegeDate
-    ? new Date(JSON.parse(req.body.privilegeDate))
-    : null;
-
-  console.log(appearDate, privilegeDate);
-  if (!(appearDate && privilegeDate)) {
-    return res.status(400).json({
-      error: "Bad request: No verify data"
-    });
-  }
-  res.verify = { appearDate, privilegeDate };
-  next();
 };
 
 exports.checkUpdateBody = async (req, res, next) => {

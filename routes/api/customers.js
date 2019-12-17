@@ -15,7 +15,6 @@ const Address = mongoose.model("Address");
 
 //list fill customers
 router.get(
-  //"/filter/:filterText/:war?/?:pageNo?/?:perPage?",
   "/filter/:filterText?/", //?war=*&page=1&limit=10
   auth.required,
   userController.getUser,
@@ -45,10 +44,10 @@ router.get(
     } else {
       return res.sendStatus(204);
     }
-    console.log("Filter:", filterText);
-    console.log("War:", war);
-    console.log("Page:", page);
-    console.log("Limit:", limit);
+    // console.log("Filter:", filterText);
+    // console.log("War:", war);
+    // console.log("Page:", page);
+    // console.log("Limit:", limit);
 
     const offset = (page - 1) * limit;
     Customer.aggregate(
@@ -67,9 +66,7 @@ router.get(
         }
       ],
       (err, docs) => {
-        // console.log("Result:", docs);
         if (!docs[0] || !docs[0].metadata[0]) {
-          // console.log(docs[0].metadata);
           return res.sendStatus(204);
         }
 
@@ -128,7 +125,6 @@ router.get(
         }
       ],
       (err, docs) => {
-        // console.log("Result:", docs);
         if (!docs[0] || !docs[0].metadata[0]) {
           console.log(docs[0].metadata);
           return res.sendStatus(204);
@@ -161,7 +157,6 @@ router.get(
   userController.grantAccess("readAny"),
   customerController.getCustomerByPeaId,
   (req, res, next) => {
-    // console.log(req.customer.verifies[8].privilegeDate);
     return res.json(req.customer);
   }
 );
@@ -231,11 +226,11 @@ var upload = multer({
 
     let privilegeDate;
     if (req.body.privilegeDate) {
-      console.log("req.body.privilegeDate", req.body.privilegeDate)
-      console.log("WTFFFFFFFFFFFFFFFFFFFF", typeof req.body.privilegeDate)
-      privilegeDate = new Date(JSON.parse(req.body.privilegeDate))
+      console.log("req.body.privilegeDate", req.body.privilegeDate);
+      console.log("WTFFFFFFFFFFFFFFFFFFFF", typeof req.body.privilegeDate);
+      privilegeDate = new Date(JSON.parse(req.body.privilegeDate));
     }
-    console.log("privilegeDate", privilegeDate)
+    console.log("privilegeDate", privilegeDate);
     if (appearDate) {
       req.verify = { appearDate, privilegeDate };
       cb(null, true);
@@ -254,7 +249,7 @@ router.put(
   upload.single("signature"),
   (req, res, next) => {
     const signature = req.file.filename;
-    console.log(req.verify)
+    console.log(req.verify);
     req.customer.verifies.push({ ...req.verify, signature });
     req.customer
       .save()
@@ -306,7 +301,7 @@ router.put(
     const { customer: customerData } = req.body;
     const { customer } = req;
     const updates = [];
-
+    console.log("address", customerData.address);
     if (isValid(customerData.address)) {
       if (isValid(customerData.address.houseNo)) {
         customer.address.houseNo = customerData.address.houseNo;
@@ -361,17 +356,6 @@ router.put(
       .catch(next);
   }
 );
-
-const saveSignatureToFile = (base64Data, fileName) => {
-  if (!base64Data) return "";
-  // const signatureFileName = `${fileName}_${Date.now()}.png`;
-  signatureFullPath = path.join(signaturePath, fileName);
-  base64Data = base64Data.replace(/^data:([A-Za-z-+/]+);base64,/, "");
-  fs.writeFileSync(signatureFullPath, base64Data, {
-    encoding: "base64"
-  });
-  return true;
-};
 
 //create a new customer
 router.post(
