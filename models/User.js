@@ -18,16 +18,7 @@ const UserSchema = new mongoose.Schema(
     displayName: {
       type: String,
       required: [true, "ชื่อที่แสดงไม่ควรว่าง"]
-      // index: true
     },
-    // email: {
-    //   type: String,
-    //   lowercase: true,
-    //   unique: true,
-    //   required: [true, "can't be blank"],
-    //   match: [/\S+@\S+\.\S+/, "is invalid"],
-    //   index: true
-    // },
     description: String,
     image: String,
     role: {

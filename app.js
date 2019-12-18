@@ -11,7 +11,13 @@ const http = require("http"),
 // multer = require("multer"),
 // upload = multer();
 
-const { isProduction, mongoDBUri, port, secret } = require("./config");
+const {
+  isProduction,
+  isInitial,
+  mongoDBUri,
+  port,
+  secret
+} = require("./config");
 
 // Create global app object
 const app = express();
@@ -43,6 +49,27 @@ mongoose
     useUnifiedTopology: true
   })
   .then(() => {
+    if (isInitial) {
+      console.log("Checking users...");
+      const User = mongoose.model("User");
+      const user = new User();
+      user.username = "superadmin";
+      user.displayName = "SuperAdmin";
+      user.description = "initial user";
+      user.role = "administrator";
+
+      user.setPassword("59122420124");
+
+      user
+        .save()
+        .then(() => {
+          console.log("Create user success");
+        })
+        .catch(err => {
+          console.error(err);
+        });
+    }
+
     console.log("Connected to the Database successfully");
   });
 
