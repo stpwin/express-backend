@@ -85,10 +85,7 @@ if (!isProduction) {
   app.use(errorhandler());
   mongoose.set("debug", true);
   app.use(async (err, req, res, next) => {
-    console.log(err.stack);
-
     res.status(err.status || 500);
-
     res.json({
       errors: {
         message: err.message,

@@ -5,13 +5,93 @@ const customerController = require("../../controllers/customerController");
 const userController = require("../../controllers/userController");
 const { isValid } = require("../../utils");
 const { signaturePath } = require("../../config");
-const path = require("path");
-const fs = require("fs");
-
 const multer = require("multer");
 
 const Customer = mongoose.model("Customer");
 const Address = mongoose.model("Address");
+
+var storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, signaturePath);
+  },
+  filename: (req, file, cb) => {
+    cb(null, `${file.fieldname}-${req.customer.peaId}-${Date.now()}.png`);
+  }
+});
+var upload = multer({
+  storage: storage,
+  fileFilter: (req, file, cb) => {
+    const appearDate = req.body.appearDate
+      ? new Date(JSON.parse(req.body.appearDate))
+      : null;
+
+    let privilegeDate;
+    if (req.body.privilegeDate) {
+      privilegeDate = new Date(JSON.parse(req.body.privilegeDate));
+    }
+    if (appearDate) {
+      req.verify = { appearDate, privilegeDate };
+      cb(null, true);
+      return;
+    }
+    cb(new Error("Expected object for argument options"), false);
+  }
+});
+
+//create a new customer
+router.post(
+  "/",
+  auth.required,
+  userController.getUser,
+  userController.grantAccess("createAny"),
+  (req, res, next) => {
+    console.log("CREATE_A_CUSTOMER");
+    const { customer: customerData } = req.body;
+    const { address: addressData } = customerData;
+    if (!customerData || !addressData) {
+      return res.sendStatus(400);
+    }
+
+    const customer = new Customer();
+    const address = new Address();
+
+    address.houseNo = addressData.houseNo;
+    address.mooNo = addressData.mooNo;
+    address.districtNo = addressData.districtNo;
+    customer.address = address;
+
+    customer.peaId = customerData.peaId;
+    customer.title = customerData.title;
+    customer.firstName = customerData.firstName;
+    customer.lastName = customerData.lastName;
+    customer.authorize = customerData.authorize;
+    customer.soldierNo = customerData.soldierNo;
+    customer.war = customerData.war;
+
+    customer
+      .save()
+      .then(() => {
+        console.log("CREATE_A_CUSTOMER: SUCCESS");
+        return res.json({
+          status: "create_success"
+        });
+      })
+      .catch(next);
+  }
+);
+
+//query a customer by peaId
+router.get(
+  "/peaid/:peaId",
+  auth.required,
+  userController.getUser,
+  userController.grantAccess("readAny"),
+  customerController.getCustomerByPeaId,
+  (req, res, next) => {
+    console.log("GET_A_CUSTOMER");
+    return res.json(req.customer);
+  }
+);
 
 //list fill customers
 router.get(
@@ -20,6 +100,7 @@ router.get(
   userController.getUser,
   userController.grantAccess("readAny"),
   (req, res, next) => {
+    console.log("GET_FILTER_CUSTOMERS");
     const filterText = req.params.filterText;
     const war = req.query.war;
     let limit = parseInt(req.query.limit) || 50;
@@ -44,10 +125,6 @@ router.get(
     } else {
       return res.sendStatus(204);
     }
-    // console.log("Filter:", filterText);
-    // console.log("War:", war);
-    // console.log("Page:", page);
-    // console.log("Limit:", limit);
 
     const offset = (page - 1) * limit;
     Customer.aggregate(
@@ -75,6 +152,8 @@ router.get(
         if (page > pages) {
           page = pages;
         }
+
+        console.log("GET_FILTER_CUSTOMERS: SUCCESS");
         return res.status(200).json({
           metadata: {
             page: page,
@@ -94,6 +173,7 @@ router.get(
   userController.getUser,
   userController.grantAccess("readAny"),
   (req, res, next) => {
+    console.log("GET_ALL_CUSTOMER");
     let limit = parseInt(req.query.limit) || 50;
     let page = parseInt(req.query.page) || 1;
     const war = req.query.war;
@@ -107,10 +187,6 @@ router.get(
     if (war && war !== "*") {
       query = { war: { $in: war.split(",") } };
     }
-
-    console.log("Page:", page);
-    console.log("Limit:", limit);
-    console.log("Offset:", offset);
 
     Customer.aggregate(
       [
@@ -126,17 +202,13 @@ router.get(
       ],
       (err, docs) => {
         if (!docs[0] || !docs[0].metadata[0]) {
-          console.log(docs[0].metadata);
           return res.sendStatus(204);
         }
         const count = docs[0].metadata[0].total;
         const pages = Math.ceil(count / limit) || 1;
         page = page > pages ? pages : page;
 
-        console.log("Count:", count);
-        console.log("Pages:", pages);
-        console.log(docs[0].data);
-
+        console.log("GET_ALL_CUSTOMER: SUCCESS");
         return res.json({
           customers: docs[0].data,
           metadata: {
@@ -149,18 +221,6 @@ router.get(
   }
 );
 
-//query a customer by peaId
-router.get(
-  "/peaid/:peaId",
-  auth.required,
-  userController.getUser,
-  userController.grantAccess("readAny"),
-  customerController.getCustomerByPeaId,
-  (req, res, next) => {
-    return res.json(req.customer);
-  }
-);
-
 router.get(
   "/signature/:peaId/:verifyId",
   auth.required,
@@ -168,10 +228,9 @@ router.get(
   userController.grantAccess("readAny"),
   customerController.getCustomerSignature,
   (req, res, next) => {
-    // console.log("signature:", req.signature);
-
-    var get_file_options = {
-      root: "signatures",
+    console.log("GET_A_SIGNATURE");
+    const get_file_options = {
+      root: signaturePath,
       dotfiles: "deny",
       headers: {
         "x-timestamp": Date.now(),
@@ -181,64 +240,14 @@ router.get(
 
     res.sendFile(`${req.signature}`, get_file_options, err => {
       if (err) {
-        // console.error("sendfile error:", err);
+        console.error("GET_A_SIGNATURE: Response error:", err);
         res.sendStatus(204);
       }
-
-      console.log("sendfile success");
+      console.log("GET_A_SIGNATURE: Response success.");
     });
     // res.json(req.signature);
   }
 );
-
-// const verifyCustomer = (customer, verify) => {
-//   customer.verifies.push(verify);
-//   return customer.save().then(() => {
-//     // saveSignatureToFile(verifyData.signatureBase64, signatureFileName);
-//     return true;
-//   });
-// };
-
-// const verifyHasRequiredFields = fields => {
-//   const appearDate = fields.appearDate
-//     ? new Date(JSON.parse(fields.appearDate))
-//     : null;
-//   const privilegeDate = fields.privilegeDate
-//     ? new Date(JSON.parse(fields.privilegeDate))
-//     : null;
-//   return appearDate && privilegeDate;
-// };
-
-var storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "signatures");
-  },
-  filename: (req, file, cb) => {
-    cb(null, `${file.fieldname}-${req.customer.peaId}-${Date.now()}.png`);
-  }
-});
-var upload = multer({
-  storage: storage,
-  fileFilter: (req, file, cb) => {
-    const appearDate = req.body.appearDate
-      ? new Date(JSON.parse(req.body.appearDate))
-      : null;
-
-    let privilegeDate;
-    if (req.body.privilegeDate) {
-      console.log("req.body.privilegeDate", req.body.privilegeDate);
-      console.log("WTFFFFFFFFFFFFFFFFFFFF", typeof req.body.privilegeDate);
-      privilegeDate = new Date(JSON.parse(req.body.privilegeDate));
-    }
-    console.log("privilegeDate", privilegeDate);
-    if (appearDate) {
-      req.verify = { appearDate, privilegeDate };
-      cb(null, true);
-      return;
-    }
-    cb(new Error("Expected object for argument options"), false);
-  }
-});
 
 router.put(
   "/verify/:peaId",
@@ -248,12 +257,15 @@ router.put(
   customerController.getCustomerByPeaId,
   upload.single("signature"),
   (req, res, next) => {
+    console.log("VERIFY_CUSTOMER");
+    console.log("req.verify:", req.verify);
+
     const signature = req.file.filename;
-    console.log(req.verify);
     req.customer.verifies.push({ ...req.verify, signature });
     req.customer
       .save()
       .then(() => {
+        console.log("VERIFY_CUSTOMER: SUCCESS");
         return res.json({
           status: "verify_success"
         });
@@ -262,32 +274,6 @@ router.put(
   }
 );
 
-// router.post(
-//   "/signature/upload/:peaId",
-//   auth.required,
-//   userController.getUser,
-//   userController.grantAccess("updateAny"),
-//   customerController.getCustomerByPeaId,
-//   (res, req, next) => {
-//     upload(req, res, err => {
-//       if (err instanceof multer.MulterError) {
-//         console.error("MulterError", err);
-//       } else if (err) {
-//         console.error(err);
-//       }
-
-//       if (err) {
-//         req.status(500).json({ errors: err });
-//       }
-
-//       console.log("upload success");
-
-//       req.json({
-//         status: "success"
-//       });
-//     });
-//   }
-// );
 
 //update a customer by peaId
 router.put(
@@ -298,10 +284,10 @@ router.put(
   customerController.checkUpdateBody,
   customerController.getCustomerByPeaId,
   (req, res, next) => {
+    console.log("UPDATE_CUSTOMER");
     const { customer: customerData } = req.body;
     const { customer } = req;
     const updates = [];
-    console.log("address", customerData.address);
     if (isValid(customerData.address)) {
       if (isValid(customerData.address.houseNo)) {
         customer.address.houseNo = customerData.address.houseNo;
@@ -348,49 +334,10 @@ router.put(
     return customer
       .save()
       .then(() => {
+        console.log("UPDATE_CUSTOMER: SUCCESS");
         return res.json({
           status: "update_success",
           updates: updates
-        });
-      })
-      .catch(next);
-  }
-);
-
-//create a new customer
-router.post(
-  "/",
-  auth.required,
-  userController.getUser,
-  userController.grantAccess("createAny"),
-  (req, res, next) => {
-    const { customer: customerData } = req.body;
-    const { address: addressData } = customerData;
-    if (!customerData || !addressData) {
-      return res.sendStatus(400);
-    }
-
-    const customer = new Customer();
-    const address = new Address();
-
-    address.houseNo = addressData.houseNo;
-    address.mooNo = addressData.mooNo;
-    address.districtNo = addressData.districtNo;
-    customer.address = address;
-
-    customer.peaId = customerData.peaId;
-    customer.title = customerData.title;
-    customer.firstName = customerData.firstName;
-    customer.lastName = customerData.lastName;
-    customer.authorize = customerData.authorize;
-    customer.soldierNo = customerData.soldierNo;
-    customer.war = customerData.war;
-
-    customer
-      .save()
-      .then(() => {
-        return res.json({
-          status: "create_success"
         });
       })
       .catch(next);
@@ -403,6 +350,7 @@ router.delete(
   userController.getUser,
   userController.grantAccess("deleteAny"),
   (req, res, next) => {
+    console.log("DELETE_CUSTOMER");
     const peaId = req.params.peaId;
     if (typeof peaId === "undefined") {
       return res.sendStatus(400);
@@ -410,6 +358,7 @@ router.delete(
 
     Customer.findOneAndRemove({ peaId: peaId })
       .then(customer => {
+        console.log("DELETE_CUSTOMER: SUCCESS");
         if (!customer) {
           return res.sendStatus(410);
         }
