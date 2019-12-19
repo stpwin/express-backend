@@ -3,8 +3,12 @@ const router = require("express").Router();
 const auth = require("../auth");
 const customerController = require("../../controllers/customerController");
 const userController = require("../../controllers/userController");
-const { isValid } = require("../../utils");
-const { signaturePath } = require("../../config");
+const {
+  isValid
+} = require("../../utils");
+const {
+  signaturePath
+} = require("../../config");
 const multer = require("multer");
 
 const Customer = mongoose.model("Customer");
@@ -21,16 +25,19 @@ var storage = multer.diskStorage({
 var upload = multer({
   storage: storage,
   fileFilter: (req, file, cb) => {
-    const appearDate = req.body.appearDate
-      ? new Date(JSON.parse(req.body.appearDate))
-      : null;
+    const appearDate = req.body.appearDate ?
+      new Date(JSON.parse(req.body.appearDate)) :
+      null;
 
     let privilegeDate;
     if (req.body.privilegeDate) {
       privilegeDate = new Date(JSON.parse(req.body.privilegeDate));
     }
     if (appearDate) {
-      req.verify = { appearDate, privilegeDate };
+      req.verify = {
+        appearDate,
+        privilegeDate
+      };
       cb(null, true);
       return;
     }
@@ -46,8 +53,12 @@ router.post(
   userController.grantAccess("createAny"),
   (req, res, next) => {
     console.log("CREATE_A_CUSTOMER");
-    const { customer: customerData } = req.body;
-    const { address: addressData } = customerData;
+    const {
+      customer: customerData
+    } = req.body;
+    const {
+      address: addressData
+    } = customerData;
     if (!customerData || !addressData) {
       return res.sendStatus(400);
     }
@@ -114,22 +125,40 @@ router.get(
     let warFilters = {};
     if (war && war !== "*") {
       const wars = war.split(",");
-      warFilters = { war: { $in: wars } };
+      warFilters = {
+        war: {
+          $in: wars
+        }
+      };
     }
 
     if (filterText.match(/[A-zก-์]/g)) {
-      queries.push({ firstName: { $regex: filterText, $options: "i" } });
-      queries.push({ lastName: { $regex: filterText, $options: "i" } });
+      queries.push({
+        firstName: {
+          $regex: filterText,
+          $options: "i"
+        }
+      });
+      queries.push({
+        lastName: {
+          $regex: filterText,
+          $options: "i"
+        }
+      });
     } else if (filterText.match(/[0-9]/g)) {
-      queries.push({ peaId: { $regex: filterText, $options: "i" } });
+      queries.push({
+        peaId: {
+          $regex: filterText,
+          $options: "i"
+        }
+      });
     } else {
       return res.sendStatus(204);
     }
 
     const offset = (page - 1) * limit;
     Customer.aggregate(
-      [
-        {
+      [{
           $match: {
             $or: queries,
             ...warFilters
@@ -137,13 +166,23 @@ router.get(
         },
         {
           $facet: {
-            metadata: [{ $count: "total" }, { $addFields: { page: page } }],
-            data: [{ $skip: offset }, { $limit: limit }]
+            metadata: [{
+              $count: "total"
+            }, {
+              $addFields: {
+                page: page
+              }
+            }],
+            data: [{
+              $skip: offset
+            }, {
+              $limit: limit
+            }]
           }
         }
       ],
       (err, docs) => {
-        if (!docs[0] || !docs[0].metadata[0]) {
+        if (!docs || !docs[0] || !docs[0].metadata[0]) {
           return res.sendStatus(204);
         }
 
@@ -185,18 +224,31 @@ router.get(
 
     let query = {};
     if (war && war !== "*") {
-      query = { war: { $in: war.split(",") } };
+      query = {
+        war: {
+          $in: war.split(",")
+        }
+      };
     }
 
     Customer.aggregate(
-      [
-        {
+      [{
           $match: query
         },
         {
           $facet: {
-            metadata: [{ $count: "total" }, { $addFields: { page: page } }],
-            data: [{ $skip: offset }, { $limit: limit }]
+            metadata: [{
+              $count: "total"
+            }, {
+              $addFields: {
+                page: page
+              }
+            }],
+            data: [{
+              $skip: offset
+            }, {
+              $limit: limit
+            }]
           }
         }
       ],
@@ -261,7 +313,10 @@ router.put(
     console.log("req.verify:", req.verify);
 
     const signature = req.file.filename;
-    req.customer.verifies.push({ ...req.verify, signature });
+    req.customer.verifies.push({
+      ...req.verify,
+      signature
+    });
     req.customer
       .save()
       .then(() => {
@@ -285,8 +340,12 @@ router.put(
   customerController.getCustomerByPeaId,
   (req, res, next) => {
     console.log("UPDATE_CUSTOMER");
-    const { customer: customerData } = req.body;
-    const { customer } = req;
+    const {
+      customer: customerData
+    } = req.body;
+    const {
+      customer
+    } = req;
     const updates = [];
     if (isValid(customerData.address)) {
       if (isValid(customerData.address.houseNo)) {
@@ -356,7 +415,9 @@ router.delete(
       return res.sendStatus(400);
     }
 
-    Customer.findOneAndRemove({ peaId: peaId })
+    Customer.findOneAndRemove({
+        peaId: peaId
+      })
       .then(customer => {
         console.log("DELETE_CUSTOMER: SUCCESS");
         if (!customer) {
