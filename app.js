@@ -7,9 +7,14 @@ const http = require("http"),
   cors = require("cors"),
   passport = require("passport"),
   errorhandler = require("errorhandler"),
-  mongoose = require("mongoose");
+  mongoose = require("mongoose"),
+  https = require("https"),
+  fs = require("fs");
 // multer = require("multer"),
 // upload = multer();
+
+const key = fs.readFileSync("./cert.key")
+const cert = fs.readFileSync("./cert.pem")
 
 const {
   isProduction,
@@ -21,13 +26,19 @@ const {
 
 // Create global app object
 const app = express();
+const server = https.createServer({
+  key: key,
+  cert: cert
+}, app)
 
 app.use(cors());
 
 // Normal express config defaults
 app.use(require("morgan")("dev"));
 
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.urlencoded({
+  extended: true
+}));
 app.use(bodyParser.json()); ////Fix this
 
 app.use(require("method-override")());
@@ -36,7 +47,9 @@ app.use(express.static(__dirname + "/public"));
 app.use(
   session({
     secret: secret,
-    cookie: { maxAge: 60000 },
+    cookie: {
+      maxAge: 60000
+    },
     resave: false,
     saveUninitialized: false
   })
@@ -116,7 +129,13 @@ app.use(async (err, req, res, next) => {
   });
 });
 
-// finally, let's start our server...
-const server = app.listen(port, () => {
-  console.log("Listening on port " + server.address().port);
-});
+const production = false;
+if (production) {
+  const appServer = server.listen(port, () => {
+    console.log("Listening on port " + server.address().port);
+  });
+} else {
+  const _server = app.listen(port, () => {
+    console.log("Listening on port " + _server.address().port);
+  });
+}

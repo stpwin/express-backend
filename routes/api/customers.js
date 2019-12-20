@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const router = require("express").Router();
 const auth = require("../auth");
+
 const customerController = require("../../controllers/customerController");
 const userController = require("../../controllers/userController");
 const {
@@ -22,21 +23,19 @@ var storage = multer.diskStorage({
     cb(null, `${file.fieldname}-${req.customer.peaId}-${Date.now()}.png`);
   }
 });
+
 var upload = multer({
   storage: storage,
   fileFilter: (req, file, cb) => {
+    console.log("appearDate", req.body)
     const appearDate = req.body.appearDate ?
       new Date(JSON.parse(req.body.appearDate)) :
       null;
 
-    let privilegeDate;
-    if (req.body.privilegeDate) {
-      privilegeDate = new Date(JSON.parse(req.body.privilegeDate));
-    }
     if (appearDate) {
+
       req.verify = {
-        appearDate,
-        privilegeDate
+        appearDate
       };
       cb(null, true);
       return;
@@ -44,6 +43,7 @@ var upload = multer({
     cb(new Error("Expected object for argument options"), false);
   }
 });
+
 
 //create a new customer
 router.post(
@@ -307,15 +307,31 @@ router.put(
   userController.getUser,
   userController.grantAccess("updateAny"),
   customerController.getCustomerByPeaId,
-  upload.single("signature"),
+  upload.any(),
+  // upload.single("signature"),
   (req, res, next) => {
     console.log("VERIFY_CUSTOMER");
-    console.log("req.verify:", req.verify);
+    console.log("req:", req.body);
 
-    const signature = req.file.filename;
+    upload.single('signature')(req, res, err => {
+
+      if (err instanceof multer.MulterError) {
+        console.error("err", err)
+      } else if (err) {
+        console.error("err", err)
+      }
+    })
+
+    return
+
+    if (req.file && req.file.filename) {
+      req.customer.verifies.push({
+        signature: req.file.filename
+      });
+    }
+
     req.customer.verifies.push({
-      ...req.verify,
-      signature
+      ...req.verify
     });
     req.customer
       .save()
