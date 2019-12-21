@@ -10,12 +10,12 @@ router.use("/customers", require("./customers"));
 router.use((err, req, res, next) => {
   if (err.name === "ValidationError") {
     const error = Object.keys(err.errors).map(k => err.errors[k].message);
-
     return res.status(422).json({
       error
     });
   }
 
+  console.error("Server error:", err)
   return next(err);
 });
 

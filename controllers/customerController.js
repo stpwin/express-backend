@@ -9,7 +9,10 @@ exports.getCustomerByPeaId = async (req, res, next) => {
     });
   }
 
-  Customer.findOne({ peaId: peaId }, { verifies: { $slice: -6 } })
+  Customer.findOne(
+    { peaId: peaId },
+    // { verifies: { $slice: -6 } }
+  )
     .then(customer => {
       if (!customer) {
         return res.status(204).json({

@@ -92,21 +92,6 @@ require("./models/Customer");
 require("./config/passport");
 
 app.use(require("./routes"));
-// app.use("/api/customers/verify", require("./routes/api/verifyCustomer"));
-
-if (!isProduction) {
-  app.use(errorhandler());
-  mongoose.set("debug", true);
-  app.use(async (err, req, res, next) => {
-    res.status(err.status || 500);
-    res.json({
-      errors: {
-        message: err.message,
-        error: err
-      }
-    });
-  });
-}
 
 /// catch 404 and forward to error handler
 app.use(async (req, res, next) => {
@@ -115,26 +100,35 @@ app.use(async (req, res, next) => {
   next(err);
 });
 
-/// error handlers
-
-// production error handler
-// no stacktraces leaked to user
-app.use(async (err, req, res, next) => {
-  res.status(err.status || 500);
-  res.json({
-    errors: {
-      message: err.message,
-      error: {}
-    }
-  });
-});
-
 const production = false;
 if (production) {
+
+  app.use(async (err, req, res, next) => {
+    res.status(err.status || 500).json({
+      errors: {
+        message: err.message,
+        error: {}
+      }
+    });
+  });
+
   const appServer = server.listen(port, () => {
     console.log("Listening on port " + server.address().port);
   });
 } else {
+  mongoose.set("debug", true);
+
+  app.use(errorhandler());
+  app.use(async (err, req, res, next) => {
+
+    res.status(err.status || 500).json({
+      errors: {
+        message: err.message,
+        error: err
+      }
+    });
+  });
+
   const _server = app.listen(port, () => {
     console.log("Listening on port " + _server.address().port);
   });

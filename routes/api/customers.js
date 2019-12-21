@@ -26,23 +26,7 @@ var storage = multer.diskStorage({
 
 var upload = multer({
   storage: storage,
-  fileFilter: (req, file, cb) => {
-    console.log("appearDate", req.body)
-    const appearDate = req.body.appearDate ?
-      new Date(JSON.parse(req.body.appearDate)) :
-      null;
-
-    if (appearDate) {
-
-      req.verify = {
-        appearDate
-      };
-      cb(null, true);
-      return;
-    }
-    cb(new Error("Expected object for argument options"), false);
-  }
-});
+}).single("signature");
 
 
 //create a new customer
@@ -53,6 +37,7 @@ router.post(
   userController.grantAccess("createAny"),
   (req, res, next) => {
     console.log("CREATE_A_CUSTOMER");
+
     const {
       customer: customerData
     } = req.body;
@@ -159,27 +144,27 @@ router.get(
     const offset = (page - 1) * limit;
     Customer.aggregate(
       [{
-          $match: {
-            $or: queries,
-            ...warFilters
-          }
-        },
-        {
-          $facet: {
-            metadata: [{
-              $count: "total"
-            }, {
-              $addFields: {
-                page: page
-              }
-            }],
-            data: [{
-              $skip: offset
-            }, {
-              $limit: limit
-            }]
-          }
+        $match: {
+          $or: queries,
+          ...warFilters
         }
+      },
+      {
+        $facet: {
+          metadata: [{
+            $count: "total"
+          }, {
+            $addFields: {
+              page: page
+            }
+          }],
+          data: [{
+            $skip: offset
+          }, {
+            $limit: limit
+          }]
+        }
+      }
       ],
       (err, docs) => {
         if (!docs || !docs[0] || !docs[0].metadata[0]) {
@@ -233,27 +218,28 @@ router.get(
 
     Customer.aggregate(
       [{
-          $match: query
-        },
-        {
-          $facet: {
-            metadata: [{
-              $count: "total"
-            }, {
-              $addFields: {
-                page: page
-              }
-            }],
-            data: [{
-              $skip: offset
-            }, {
-              $limit: limit
-            }]
-          }
+        $match: query
+      },
+      // { $project: { verifies: { $slice: ["$verifies", -6] } } },
+      {
+        $facet: {
+          metadata: [{
+            $count: "total"
+          }, {
+            $addFields: {
+              page: page
+            }
+          }],
+          data: [{
+            $skip: offset
+          }, {
+            $limit: limit
+          }]
         }
+      }
       ],
       (err, docs) => {
-        if (!docs[0] || !docs[0].metadata[0]) {
+        if (!docs || !docs[0] || !docs[0].metadata[0]) {
           return res.sendStatus(204);
         }
         const count = docs[0].metadata[0].total;
@@ -292,10 +278,10 @@ router.get(
 
     res.sendFile(`${req.signature}`, get_file_options, err => {
       if (err) {
-        console.error("GET_A_SIGNATURE: Response error:", err);
+        // console.error("GET_A_SIGNATURE: Error:", err);
         res.sendStatus(204);
       }
-      console.log("GET_A_SIGNATURE: Response success.");
+      console.log("GET_A_SIGNATURE: SUCCESS");
     });
     // res.json(req.signature);
   }
@@ -307,41 +293,44 @@ router.put(
   userController.getUser,
   userController.grantAccess("updateAny"),
   customerController.getCustomerByPeaId,
-  upload.any(),
-  // upload.single("signature"),
+  // upload.any(),
+  // upload,
   (req, res, next) => {
     console.log("VERIFY_CUSTOMER");
-    console.log("req:", req.body);
 
-    upload.single('signature')(req, res, err => {
+    const appearDate = req.header('appearDate')
 
-      if (err instanceof multer.MulterError) {
-        console.error("err", err)
-      } else if (err) {
-        console.error("err", err)
-      }
-    })
-
-    return
-
-    if (req.file && req.file.filename) {
-      req.customer.verifies.push({
-        signature: req.file.filename
-      });
+    if (!appearDate) {
+      return res.sendStatus(422)
     }
 
-    req.customer.verifies.push({
-      ...req.verify
-    });
-    req.customer
-      .save()
-      .then(() => {
-        console.log("VERIFY_CUSTOMER: SUCCESS");
-        return res.json({
-          status: "verify_success"
+    // console.log("appearDate:", new Date(appearDate))
+    // return res.sendStatus(500)
+
+    upload(req, res, function (err) {
+      console.log("Uploading...")
+      if (err) {
+        console.error("Upload failed:", err)
+        return res.sendStatus(500)
+      }
+
+      req.customer.verifies.push({
+        appearDate: JSON.parse(appearDate),
+        signature: req.file && req.file.filename
+      });
+
+      req.customer
+        .save()
+        .then(() => {
+          console.log("VERIFY_CUSTOMER: SUCCESS");
+          return res.json({
+            status: "verify_success"
+          });
+        })
+        .catch(err => {
+          console.log(err)
         });
-      })
-      .catch(next);
+    });
   }
 );
 
@@ -356,26 +345,23 @@ router.put(
   customerController.getCustomerByPeaId,
   (req, res, next) => {
     console.log("UPDATE_CUSTOMER");
-    const {
-      customer: customerData
-    } = req.body;
-    const {
-      customer
-    } = req;
+    const { customer: customerData } = req.body;
+    const { customer } = req;
     const updates = [];
+
     if (isValid(customerData.address)) {
-      if (isValid(customerData.address.houseNo)) {
-        customer.address.houseNo = customerData.address.houseNo;
-        updates.push("address.houseNo");
-      }
-      if (isValid(customerData.address.mooNo)) {
-        customer.address.mooNo = customerData.address.mooNo;
-        updates.push("address.mooNo");
-      }
-      if (isValid(customerData.address.districtNo)) {
-        customer.address.districtNo = customerData.address.districtNo;
-        updates.push("address.districtNo");
-      }
+      // if (isValid(customerData.address.houseNo)) {
+      customer.address.houseNo = customerData.address.houseNo;
+      updates.push("address.houseNo");
+      // }
+      // if (isValid(customerData.address.mooNo)) {
+      customer.address.mooNo = customerData.address.mooNo;
+      updates.push("address.mooNo");
+      // }
+      // if (isValid(customerData.address.districtNo)) {
+      customer.address.districtNo = customerData.address.districtNo;
+      updates.push("address.districtNo");
+      // }
     }
 
     if (isValid(customerData.title)) {
@@ -432,8 +418,8 @@ router.delete(
     }
 
     Customer.findOneAndRemove({
-        peaId: peaId
-      })
+      peaId: peaId
+    })
       .then(customer => {
         console.log("DELETE_CUSTOMER: SUCCESS");
         if (!customer) {
