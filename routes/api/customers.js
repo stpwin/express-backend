@@ -298,10 +298,16 @@ router.put(
   (req, res, next) => {
     console.log("VERIFY_CUSTOMER");
 
-    const appearDate = req.header('appearDate')
-
+    let appearDate = req.header('appearDate')
+    console.log(appearDate)
     if (!appearDate) {
       return res.sendStatus(422)
+    }
+
+    try {
+      appearDate = JSON.parse(appearDate)
+    } catch {
+      return res.sendStatus(400)
     }
 
     // console.log("appearDate:", new Date(appearDate))
@@ -315,7 +321,7 @@ router.put(
       }
 
       req.customer.verifies.push({
-        appearDate: JSON.parse(appearDate),
+        appearDate: appearDate,
         signature: req.file && req.file.filename
       });
 
