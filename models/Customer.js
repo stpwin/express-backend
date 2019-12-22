@@ -5,6 +5,10 @@ const uniqueValidator = require("mongoose-unique-validator");
 //   MongooseAutoIncrementID = require('mongoose-auto-increment-reworked').MongooseAutoIncrementID;
 // MongooseAutoIncrementID.initialise('no');
 
+const CounterSchema = new mongoose.Schema({
+  "_id": { type: String, required: true },
+  "sequence": { type: Number, default: 0 }
+})
 
 const AddressSchema = new mongoose.Schema({
   houseNo: String,
@@ -51,6 +55,7 @@ const CustomerSchema = new mongoose.Schema({
   soldierNo: String,
   war: {
     type: String,
+    default: "ภายในประเทศ",
     enum: [
       "ภายในประเทศ", //G1
       "เวียดนาม", //G1
@@ -59,11 +64,12 @@ const CustomerSchema = new mongoose.Schema({
       "อินโดจีน", //G2
       "ฝรั่งเศส" //G2
     ],
-    required: [true, "ลดสิทธิ์สงครามไม่ควรว่าง"]
+    required: [true, "สงครามไม่ควรว่าง"]
     // index: true
   },
   verifies: [VerifySchema],
-  privilegeDate: Date
+  privilegeDate: Date,
+  seq: { type: Number }
 }, {
   timestamps: true
 });
@@ -98,6 +104,7 @@ CustomerSchema.plugin(uniqueValidator, {
 //   modelName: 'Customer'
 // })
 
+mongoose.model("Counter", CounterSchema)
 mongoose.model("Verify", VerifySchema);
 mongoose.model("Address", AddressSchema);
 mongoose.model("Customer", CustomerSchema);

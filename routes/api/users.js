@@ -72,6 +72,10 @@ router.get(
         }
       ],
       (err, docs) => {
+        if (err) {
+          return res.sendStatus(500)
+        }
+
         if (!docs[0] || !docs[0].metadata[0]) {
           return res.sendStatus(204);
         }
@@ -131,6 +135,9 @@ router.get(
         }
       ],
       (err, docs) => {
+        if (err) {
+          return res.sendStatus(500)
+        }
         if (!docs[0] || !docs[0].metadata[0]) {
           // console.log(docs[0].metadata);
           return res.sendStatus(204);
@@ -197,7 +204,7 @@ router.put(
 
         return doc.save().then(() => {
           return res.json({
-            status: "success"
+            status: "user_update_success"
           });
         });
       })
@@ -206,17 +213,15 @@ router.put(
 );
 
 router.post("/login", (req, res, next) => {
-  //login
+  const { user: { username, password } } = req.body
 
-  if (!req.body.user.username) {
-    return res.status(422).json({ errors: { username: "can't be blank" } });
+  if (!username) {
+    return res.status(422).json({ error: "username can't be blank" });
   }
 
-  if (!req.body.user.password) {
-    return res.status(422).json({ errors: { password: "can't be blank" } });
+  if (!password) {
+    return res.status(422).json({ error: "password can't be blank" });
   }
-
-  console.log(req.body.user);
 
   passport.authenticate("local", { session: false }, (err, user, info) => {
     if (err) {
@@ -277,41 +282,30 @@ router.post(
       .then(() => {
         return res
           .status(201)
-          .json({ user: user.toAuthJSON(), status: "success" });
+          .json({ user: user.toAuthJSON(), status: "user_create_success" });
       })
       .catch(next);
   }
 );
 
 router.delete(
-  "/",
+  "/uid/:uid",
   auth.required,
   userController.getUser,
   userController.grantAccess("deleteAny"),
   (req, res, next) => {
-    const uid = req.body.uid;
+    const { uid } = req.params;
 
-    if (typeof uid === "undefined") {
+    if (!uid) {
       return res.sendStatus(400);
     }
-    // console.log(req.payload)
 
-    let objId;
-    try {
-      objId = mongoose.Types.ObjectId(uid);
-    } catch (error) {
-      return res.status(400).json({
-        error: error
-      });
-    }
-
-    User.findOneAndRemove({ _id: objId })
-      .then(user => {
-        console.log(user);
-        if (!user) {
-          return res.sendStatus(204);
-        }
-        return res.sendStatus(204);
+    User.deleteOne({ _id: mongoose.Types.ObjectId(uid) })
+      .then(result => {
+        console.log("result:", result);
+        return res.json({
+          status: "user_delete_success"
+        });
       })
       .catch(next);
   }

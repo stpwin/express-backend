@@ -59,7 +59,8 @@ mongoose
   .connect(mongoDBUri, {
     useCreateIndex: true,
     useNewUrlParser: true,
-    useUnifiedTopology: true
+    useUnifiedTopology: true,
+    // useFindAndModify: false
   })
   .then(() => {
     if (isInitial) {

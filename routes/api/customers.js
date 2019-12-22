@@ -14,6 +14,7 @@ const multer = require("multer");
 
 const Customer = mongoose.model("Customer");
 const Address = mongoose.model("Address");
+const Counter = mongoose.model("Counter")
 
 var storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -28,6 +29,39 @@ var upload = multer({
   storage: storage,
 }).single("signature");
 
+const getNextSequence = name => {
+  return Counter.findByIdAndUpdate(name, { $inc: { "sequence": 1 } }, { upsert: true, new: true, setDefaultsOnInsert: true }).then(result => {
+    console.log("getNextSequence:", result)
+    return result.sequence
+  }).catch(err => {
+    console.error("getNextSequence:", err)
+  })
+}
+
+const getUndoSequence = name => {
+  return Counter.findByIdAndUpdate(name, { $inc: { "sequence": -1 } }, { upsert: true, new: true, setDefaultsOnInsert: true }).then(result => {
+    console.log("getNextSequence:", result)
+    return result.sequence
+  }).catch(err => {
+    console.error("getNextSequence:", err)
+  })
+}
+
+// console.log("G1", getNextSequence("customer_g1"));
+// console.log("G2", getNextSequence("customer_g2"));
+
+const warsType = {
+  ภายในประเทศ: "g1",
+  เวียดนาม: "g1",
+  เกาหลี: "g1",
+  เอเชียบูรพา: "g2",
+  อินโดจีน: "g2",
+  ฝรั่งเศส: "g2"
+};
+
+const getWarType = war => {
+  return warsType[war];
+};
 
 //create a new customer
 router.post(
@@ -38,41 +72,43 @@ router.post(
   (req, res, next) => {
     console.log("CREATE_A_CUSTOMER");
 
-    const {
-      customer: customerData
-    } = req.body;
-    const {
-      address: addressData
-    } = customerData;
-    if (!customerData || !addressData) {
+    const { customer: { peaId, title, firstName, lastName, authorize, soldierNo, war, address: { houseNo, mooNo, districtNo } } } = req.body;
+    console.log(req.body.customer)
+    if (!peaId || !firstName || !lastName || !authorize || !soldierNo || !war || !districtNo) {
       return res.sendStatus(400);
     }
 
-    const customer = new Customer();
-    const address = new Address();
+    getNextSequence(`customer_${getWarType(war)}`).then(sequence => {
+      const customer = new Customer();
+      const address = new Address();
 
-    address.houseNo = addressData.houseNo;
-    address.mooNo = addressData.mooNo;
-    address.districtNo = addressData.districtNo;
-    customer.address = address;
+      address.houseNo = houseNo;
+      address.mooNo = mooNo;
+      address.districtNo = districtNo;
+      customer.address = address;
 
-    customer.peaId = customerData.peaId;
-    customer.title = customerData.title;
-    customer.firstName = customerData.firstName;
-    customer.lastName = customerData.lastName;
-    customer.authorize = customerData.authorize;
-    customer.soldierNo = customerData.soldierNo;
-    customer.war = customerData.war;
-
-    customer
-      .save()
-      .then(() => {
-        console.log("CREATE_A_CUSTOMER: SUCCESS");
-        return res.json({
-          status: "create_success"
-        });
-      })
-      .catch(next);
+      customer.peaId = peaId;
+      customer.title = title;
+      customer.firstName = firstName;
+      customer.lastName = lastName;
+      customer.authorize = authorize;
+      customer.soldierNo = soldierNo;
+      customer.war = war;
+      customer.seq = sequence;
+      return customer
+        .save()
+        .then(() => {
+          console.log("CREATE_A_CUSTOMER: SUCCESS");
+          return res.json({
+            status: "create_success"
+          });
+        }).catch(err => {
+          next(err)
+          return getUndoSequence(`customer_${getWarType(war)}`).then(() => {
+            console.log("Undo sequence success.")
+          })
+        })
+    }).catch(next);
   }
 );
 
