@@ -25,14 +25,20 @@ ac.grant("administrator")
   .readOwn("/api/admin")
   .updateOwn("/api/admin")
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 1cf4bc1... added counter settings
   .deleteOwn("/api/admin")
 
   .createAny("/api/settings")
   .readAny("/api/settings")
   .updateAny("/api/settings")
   .deleteAny("/api/settings");
+<<<<<<< HEAD
 =======
   .deleteOwn("/api/admin");
 >>>>>>> f4be806... aaaa
+=======
+>>>>>>> 1cf4bc1... added counter settings
 
 exports.roles = ac;

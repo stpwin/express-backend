@@ -6,6 +6,7 @@ const uniqueValidator = require("mongoose-unique-validator");
 // MongooseAutoIncrementID.initialise('no');
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 =======
 const CounterSchema = new mongoose.Schema({
@@ -13,6 +14,9 @@ const CounterSchema = new mongoose.Schema({
   "sequence": { type: Number, default: 0 }
 })
 >>>>>>> f4be806... aaaa
+=======
+
+>>>>>>> 1cf4bc1... added counter settings
 
 const AddressSchema = new mongoose.Schema({
   houseNo: String,
@@ -109,10 +113,14 @@ CustomerSchema.plugin(uniqueValidator, {
 // })
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 =======
 mongoose.model("Counter", CounterSchema)
 >>>>>>> f4be806... aaaa
+=======
+
+>>>>>>> 1cf4bc1... added counter settings
 mongoose.model("Verify", VerifySchema);
 mongoose.model("Address", AddressSchema);
 mongoose.model("Customer", CustomerSchema);
