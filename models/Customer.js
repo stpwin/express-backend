@@ -1,22 +1,10 @@
 const mongoose = require("mongoose");
 const uniqueValidator = require("mongoose-unique-validator");
 
-// const
-//   MongooseAutoIncrementID = require('mongoose-auto-increment-reworked').MongooseAutoIncrementID;
-// MongooseAutoIncrementID.initialise('no');
-
-<<<<<<< HEAD
-<<<<<<< HEAD
-
-=======
 const CounterSchema = new mongoose.Schema({
   "_id": { type: String, required: true },
   "sequence": { type: Number, default: 0 }
 })
->>>>>>> f4be806... aaaa
-=======
-
->>>>>>> 1cf4bc1... added counter settings
 
 const AddressSchema = new mongoose.Schema({
   houseNo: String,
@@ -94,33 +82,6 @@ CustomerSchema.plugin(uniqueValidator, {
   message: "รหัสผู้ใช้ไฟซ้ำกับในระบบ"
 });
 
-// const plugin = new MongooseAutoIncrementID(CustomerSchema, "Customer", {
-//   field: "no",
-//   startAt: 1,
-//   unique: true
-// })
-
-// plugin.applyPlugin()
-//   .then(() => {
-//     console.log("Mongose Auto Increment ready to use!")
-//   })
-//   .catch(e => {
-//     console.error("Mongose Auto Increment failed to initialise!")
-//   });
-
-// CustomerSchema.plugin(MongooseAutoIncrementID.plugin, {
-//   modelName: 'Customer'
-// })
-
-<<<<<<< HEAD
-<<<<<<< HEAD
-
-=======
-mongoose.model("Counter", CounterSchema)
->>>>>>> f4be806... aaaa
-=======
-
->>>>>>> 1cf4bc1... added counter settings
 mongoose.model("Verify", VerifySchema);
 mongoose.model("Address", AddressSchema);
 mongoose.model("Customer", CustomerSchema);

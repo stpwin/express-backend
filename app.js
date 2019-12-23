@@ -60,15 +60,7 @@ mongoose
     useCreateIndex: true,
     useNewUrlParser: true,
     useUnifiedTopology: true,
-<<<<<<< HEAD
-<<<<<<< HEAD
     useFindAndModify: false
-=======
-    // useFindAndModify: false
->>>>>>> f4be806... aaaa
-=======
-    useFindAndModify: false
->>>>>>> 1cf4bc1... added counter settings
   })
   .then(() => {
     if (isInitial) {
@@ -97,14 +89,7 @@ mongoose
 
 require("./models/User");
 require("./models/Customer");
-<<<<<<< HEAD
-<<<<<<< HEAD
 require("./models/Counter")
-=======
->>>>>>> f4be806... aaaa
-=======
-require("./models/Counter")
->>>>>>> 1cf4bc1... added counter settings
 
 require("./config/passport");
 
