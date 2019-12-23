@@ -60,7 +60,7 @@ mongoose
     useCreateIndex: true,
     useNewUrlParser: true,
     useUnifiedTopology: true,
-    // useFindAndModify: false
+    useFindAndModify: false
   })
   .then(() => {
     if (isInitial) {
@@ -89,6 +89,7 @@ mongoose
 
 require("./models/User");
 require("./models/Customer");
+require("./models/Counter")
 
 require("./config/passport");
 
