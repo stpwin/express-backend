@@ -24,11 +24,15 @@ ac.grant("administrator")
   .createOwn("/api/admin")
   .readOwn("/api/admin")
   .updateOwn("/api/admin")
+<<<<<<< HEAD
   .deleteOwn("/api/admin")
 
   .createAny("/api/settings")
   .readAny("/api/settings")
   .updateAny("/api/settings")
   .deleteAny("/api/settings");
+=======
+  .deleteOwn("/api/admin");
+>>>>>>> f4be806... aaaa
 
 exports.roles = ac;
