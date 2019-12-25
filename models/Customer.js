@@ -5,8 +5,6 @@ const uniqueValidator = require("mongoose-unique-validator");
 //   MongooseAutoIncrementID = require('mongoose-auto-increment-reworked').MongooseAutoIncrementID;
 // MongooseAutoIncrementID.initialise('no');
 
-
-
 const AddressSchema = new mongoose.Schema({
   houseNo: String,
   mooNo: Number,
@@ -57,6 +55,7 @@ const CustomerSchema = new mongoose.Schema({
       "ภายในประเทศ", //G1
       "เวียดนาม", //G1
       "เกาหลี", //G1
+      "เหรียญชัยสมรภูมิ",
       "เอเชียบูรพา", //G2
       "อินโดจีน", //G2
       "ฝรั่งเศส" //G2
@@ -66,7 +65,9 @@ const CustomerSchema = new mongoose.Schema({
   },
   verifies: [VerifySchema],
   privilegeDate: Date,
-  seq: { type: Number }
+  seq: {
+    type: Number
+  }
 }, {
   timestamps: true
 });
