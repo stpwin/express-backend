@@ -26,8 +26,7 @@ const {
 
 // Create global app object
 const app = express();
-const server = https.createServer(
-  {
+const server = https.createServer({
     key: key,
     cert: cert
   },
@@ -66,6 +65,7 @@ mongoose
     useNewUrlParser: true,
     useUnifiedTopology: true,
     useFindAndModify: false
+
   })
   .then(() => {
     if (isInitial) {
@@ -108,7 +108,7 @@ app.use(async (req, res, next) => {
   next(err);
 });
 
-const production = false;
+const production = true;
 if (production) {
   app.use(async (err, req, res, next) => {
     res.status(err.status || 500).json({
