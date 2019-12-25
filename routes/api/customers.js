@@ -205,12 +205,13 @@ router.get(
           $options: "i"
         }
       });
-      queries.push({
-        seq: {
-          $regex: filterText,
-          $options: "i"
-        }
-      });
+      const seq = parseInt(filterText)
+      if (seq) {
+        queries.push({
+          seq
+        });
+      }
+
     } else {
       return res.sendStatus(204);
     }
