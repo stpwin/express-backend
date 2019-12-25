@@ -3,3 +3,5 @@ node_modules/
 signatures/
 backup/
 *.png
+customers_collection.json
+postman_dump.json
