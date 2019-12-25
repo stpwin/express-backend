@@ -30,6 +30,4 @@ ac.grant("administrator")
   .readAny("/api/settings")
   .updateAny("/api/settings")
   .deleteAny("/api/settings");
-
-
 exports.roles = ac;

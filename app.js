@@ -13,8 +13,8 @@ const http = require("http"),
 // multer = require("multer"),
 // upload = multer();
 
-const key = fs.readFileSync("./cert.key")
-const cert = fs.readFileSync("./cert.pem")
+const key = fs.readFileSync("./cert.key");
+const cert = fs.readFileSync("./cert.pem");
 
 const {
   isProduction,
@@ -27,18 +27,22 @@ const {
 // Create global app object
 const app = express();
 const server = https.createServer({
-  key: key,
-  cert: cert
-}, app)
+    key: key,
+    cert: cert
+  },
+  app
+);
 
 app.use(cors());
 
 // Normal express config defaults
 app.use(require("morgan")("dev"));
 
-app.use(bodyParser.urlencoded({
-  extended: true
-}));
+app.use(
+  bodyParser.urlencoded({
+    extended: true
+  })
+);
 app.use(bodyParser.json()); ////Fix this
 
 app.use(require("method-override")());
@@ -61,6 +65,7 @@ mongoose
     useNewUrlParser: true,
     useUnifiedTopology: true,
     useFindAndModify: false
+
   })
   .then(() => {
     if (isInitial) {
@@ -89,7 +94,8 @@ mongoose
 
 require("./models/User");
 require("./models/Customer");
-require("./models/Counter")
+
+require("./models/Counter");
 
 require("./config/passport");
 
@@ -102,9 +108,8 @@ app.use(async (req, res, next) => {
   next(err);
 });
 
-const production = false;
+const production = true;
 if (production) {
-
   app.use(async (err, req, res, next) => {
     res.status(err.status || 500).json({
       errors: {
@@ -122,7 +127,6 @@ if (production) {
 
   app.use(errorhandler());
   app.use(async (err, req, res, next) => {
-
     res.status(err.status || 500).json({
       errors: {
         message: err.message,

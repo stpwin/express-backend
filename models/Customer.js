@@ -1,9 +1,16 @@
 const mongoose = require("mongoose");
 const uniqueValidator = require("mongoose-unique-validator");
 
+
 const CounterSchema = new mongoose.Schema({
-  "_id": { type: String, required: true },
-  "sequence": { type: Number, default: 0 }
+  "_id": {
+    type: String,
+    required: true
+  },
+  "sequence": {
+    type: Number,
+    default: 0
+  }
 })
 
 const AddressSchema = new mongoose.Schema({
@@ -56,6 +63,7 @@ const CustomerSchema = new mongoose.Schema({
       "ภายในประเทศ", //G1
       "เวียดนาม", //G1
       "เกาหลี", //G1
+      "เหรียญชัยสมรภูมิ",
       "เอเชียบูรพา", //G2
       "อินโดจีน", //G2
       "ฝรั่งเศส" //G2
@@ -65,7 +73,9 @@ const CustomerSchema = new mongoose.Schema({
   },
   verifies: [VerifySchema],
   privilegeDate: Date,
-  seq: { type: Number }
+  seq: {
+    type: Number
+  }
 }, {
   timestamps: true
 });
