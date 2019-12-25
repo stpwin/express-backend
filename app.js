@@ -101,7 +101,7 @@ app.use(async (req, res, next) => {
   next(err);
 });
 
-const production = false;
+const production = true;
 if (production) {
 
   app.use(async (err, req, res, next) => {
