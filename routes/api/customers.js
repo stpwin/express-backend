@@ -205,6 +205,12 @@ router.get(
           $options: "i"
         }
       });
+      queries.push({
+        seq: {
+          $regex: filterText,
+          $options: "i"
+        }
+      });
     } else {
       return res.sendStatus(204);
     }
