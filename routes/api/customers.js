@@ -30,7 +30,15 @@ var upload = multer({
 }).single("signature");
 
 const getNextSequence = name => {
-  return Counter.findByIdAndUpdate(name, { $inc: { "sequence": 1 } }, { upsert: true, new: true, setDefaultsOnInsert: true }).then(result => {
+  return Counter.findByIdAndUpdate(name, {
+    $inc: {
+      "sequence": 1
+    }
+  }, {
+    upsert: true,
+    new: true,
+    setDefaultsOnInsert: true
+  }).then(result => {
     console.log("getNextSequence:", result)
     return result.sequence
   }).catch(err => {
@@ -39,7 +47,15 @@ const getNextSequence = name => {
 }
 
 const getUndoSequence = name => {
-  return Counter.findByIdAndUpdate(name, { $inc: { "sequence": -1 } }, { upsert: true, new: true, setDefaultsOnInsert: true }).then(result => {
+  return Counter.findByIdAndUpdate(name, {
+    $inc: {
+      "sequence": -1
+    }
+  }, {
+    upsert: true,
+    new: true,
+    setDefaultsOnInsert: true
+  }).then(result => {
     console.log("getNextSequence:", result)
     return result.sequence
   }).catch(err => {
@@ -51,12 +67,13 @@ const getUndoSequence = name => {
 // console.log("G2", getNextSequence("customer_g2"));
 
 const warsType = {
-  ภายในประเทศ: "g1",
-  เวียดนาม: "g1",
-  เกาหลี: "g1",
-  เอเชียบูรพา: "g2",
-  อินโดจีน: "g2",
-  ฝรั่งเศส: "g2"
+  "ภายในประเทศ": "g1",
+  "เวียดนาม": "g1",
+  "เกาหลี": "g1",
+  "เหรียญชัยสมรภูมิ": "g2",
+  "เอเชียบูรพา": "g2",
+  "อินโดจีน": "g2",
+  "ฝรั่งเศส": "g2"
 };
 
 const getWarType = war => {
@@ -72,9 +89,24 @@ router.post(
   (req, res, next) => {
     console.log("CREATE_A_CUSTOMER");
 
-    const { customer: { peaId, title, firstName, lastName, authorize, soldierNo, war, address: { houseNo, mooNo, districtNo } } } = req.body;
+    const {
+      customer: {
+        peaId,
+        title,
+        firstName,
+        lastName,
+        authorize,
+        soldierNo,
+        war,
+        address: {
+          houseNo,
+          mooNo,
+          districtNo
+        }
+      }
+    } = req.body;
     console.log(req.body.customer)
-    if (!peaId || !firstName || !lastName || !authorize || !soldierNo || !war || !districtNo) {
+    if (!peaId || (peaId && peaId.length < 12) || !firstName || !lastName || !authorize || !soldierNo || !war || !districtNo) {
       return res.sendStatus(400);
     }
 
@@ -180,27 +212,27 @@ router.get(
     const offset = (page - 1) * limit;
     Customer.aggregate(
       [{
-        $match: {
-          $or: queries,
-          ...warFilters
+          $match: {
+            $or: queries,
+            ...warFilters
+          }
+        },
+        {
+          $facet: {
+            metadata: [{
+              $count: "total"
+            }, {
+              $addFields: {
+                page: page
+              }
+            }],
+            data: [{
+              $skip: offset
+            }, {
+              $limit: limit
+            }]
+          }
         }
-      },
-      {
-        $facet: {
-          metadata: [{
-            $count: "total"
-          }, {
-            $addFields: {
-              page: page
-            }
-          }],
-          data: [{
-            $skip: offset
-          }, {
-            $limit: limit
-          }]
-        }
-      }
       ],
       (err, docs) => {
         if (!docs || !docs[0] || !docs[0].metadata[0]) {
@@ -254,25 +286,25 @@ router.get(
 
     Customer.aggregate(
       [{
-        $match: query
-      },
-      // { $project: { verifies: { $slice: ["$verifies", -6] } } },
-      {
-        $facet: {
-          metadata: [{
-            $count: "total"
-          }, {
-            $addFields: {
-              page: page
-            }
-          }],
-          data: [{
-            $skip: offset
-          }, {
-            $limit: limit
-          }]
+          $match: query
+        },
+        // { $project: { verifies: { $slice: ["$verifies", -6] } } },
+        {
+          $facet: {
+            metadata: [{
+              $count: "total"
+            }, {
+              $addFields: {
+                page: page
+              }
+            }],
+            data: [{
+              $skip: offset
+            }, {
+              $limit: limit
+            }]
+          }
         }
-      }
       ],
       (err, docs) => {
         if (!docs || !docs[0] || !docs[0].metadata[0]) {
@@ -387,8 +419,12 @@ router.put(
   customerController.getCustomerByPeaId,
   (req, res, next) => {
     console.log("UPDATE_CUSTOMER");
-    const { customer: customerData } = req.body;
-    const { customer } = req;
+    const {
+      customer: customerData
+    } = req.body;
+    const {
+      customer
+    } = req;
     const updates = [];
 
     if (isValid(customerData.address)) {
@@ -460,8 +496,8 @@ router.delete(
     }
 
     Customer.findOneAndRemove({
-      peaId: peaId
-    })
+        peaId: peaId
+      })
       .then(customer => {
         console.log("DELETE_CUSTOMER: SUCCESS");
         if (!customer) {
