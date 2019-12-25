@@ -76,8 +76,9 @@ const warsType = {
   "ฝรั่งเศส": "g2"
 };
 
-const getWarType = war => {
-  return warsType[war];
+const typeWars = {
+  "1": ["ภายในประเทศ", "เวียดนาม", "เกาหลี"],
+  "2": ["เหรียญชัยสมรภูมิ", "เอเชียบูรพา", "อินโดจีน", "ฝรั่งเศส"]
 };
 
 //create a new customer
@@ -110,7 +111,7 @@ router.post(
       return res.sendStatus(400);
     }
 
-    getNextSequence(`customer_${getWarType(war)}`).then(sequence => {
+    getNextSequence(`customer_${warsType[war]}`).then(sequence => {
       const customer = new Customer();
       const address = new Address();
 
@@ -136,7 +137,7 @@ router.post(
           });
         }).catch(err => {
           next(err)
-          return getUndoSequence(`customer_${getWarType(war)}`).then(() => {
+          return getUndoSequence(`customer_${warsType[war]}`).then(() => {
             console.log("Undo sequence success.")
           })
         })
@@ -219,27 +220,27 @@ router.get(
     const offset = (page - 1) * limit;
     Customer.aggregate(
       [{
-          $match: {
-            $or: queries,
-            ...warFilters
-          }
-        },
-        {
-          $facet: {
-            metadata: [{
-              $count: "total"
-            }, {
-              $addFields: {
-                page: page
-              }
-            }],
-            data: [{
-              $skip: offset
-            }, {
-              $limit: limit
-            }]
-          }
+        $match: {
+          $or: queries,
+          ...warFilters
         }
+      },
+      {
+        $facet: {
+          metadata: [{
+            $count: "total"
+          }, {
+            $addFields: {
+              page: page
+            }
+          }],
+          data: [{
+            $skip: offset
+          }, {
+            $limit: limit
+          }]
+        }
+      }
       ],
       (err, docs) => {
         if (!docs || !docs[0] || !docs[0].metadata[0]) {
@@ -262,6 +263,35 @@ router.get(
         });
       }
     ).catch(next);
+  }
+);
+
+//fill customer by seq
+router.get(
+  "/seq/:war/:seq", //?war=*
+  auth.required,
+  userController.getUser,
+  userController.grantAccess("readAny"),
+  (req, res, next) => {
+    console.log("GET_FILTER_CUSTOMERS_BY_SEQUENCE");
+
+    let { war, seq } = req.params;
+    seq = parseInt(seq)
+
+    if (!war || !seq) {
+      return res.sendStatus(400)
+    }
+
+    Customer.find({
+      war: { $in: typeWars[war] },
+      seq
+    }).then(result => {
+      if (result && result.length > 0) {
+        console.log(result)
+        return res.json({ customers: result })
+      }
+      return res.json({ customers: null })
+    }).catch(next)
   }
 );
 
@@ -293,25 +323,25 @@ router.get(
 
     Customer.aggregate(
       [{
-          $match: query
-        },
-        // { $project: { verifies: { $slice: ["$verifies", -6] } } },
-        {
-          $facet: {
-            metadata: [{
-              $count: "total"
-            }, {
-              $addFields: {
-                page: page
-              }
-            }],
-            data: [{
-              $skip: offset
-            }, {
-              $limit: limit
-            }]
-          }
+        $match: query
+      },
+      // { $project: { verifies: { $slice: ["$verifies", -6] } } },
+      {
+        $facet: {
+          metadata: [{
+            $count: "total"
+          }, {
+            $addFields: {
+              page: page
+            }
+          }],
+          data: [{
+            $skip: offset
+          }, {
+            $limit: limit
+          }]
         }
+      }
       ],
       (err, docs) => {
         if (!docs || !docs[0] || !docs[0].metadata[0]) {
@@ -503,8 +533,8 @@ router.delete(
     }
 
     Customer.findOneAndRemove({
-        peaId: peaId
-      })
+      peaId: peaId
+    })
       .then(customer => {
         console.log("DELETE_CUSTOMER: SUCCESS");
         if (!customer) {
