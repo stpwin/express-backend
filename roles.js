@@ -6,7 +6,7 @@ ac.grant("supervisor")
   .readAny("/api/customers")
   .createAny("/api/customers")
   .updateAny("/api/customers")
-  .deleteAny("/api/customers")
+  // .deleteAny("/api/customers")
 
   .readOwn("/api/users")
   .updateOwn("/api/users");
@@ -14,7 +14,7 @@ ac.grant("supervisor")
 
 ac.grant("administrator")
   .extend("supervisor")
-  // .deleteAny("/api/customers")
+  .deleteAny("/api/customers")
 
   .createAny("/api/users")
   .readAny("/api/users")
