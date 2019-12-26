@@ -479,6 +479,11 @@ router.put(
       // }
     }
 
+    if (isValid(customerData.peaId)) {
+      customer.peaId = customerData.peaId;
+      updates.push("peaId");
+    }
+
     if (isValid(customerData.title)) {
       customer.title = customerData.title;
       updates.push("title");
@@ -519,6 +524,98 @@ router.put(
       .catch(next);
   }
 );
+
+router.patch("/approve/:peaId/:verifyId",
+  auth.required,
+  userController.getUser,
+  userController.grantAccess("deleteAny"),
+  (req, res, next) => {
+
+    const { peaId, verifyId } = req.params;
+    let { approvedDate } = req.body
+    if (!peaId || !verifyId) {
+      return res.status(400).json({
+        error: "Bad request"
+      });
+    }
+
+    approvedDate = (approvedDate && new Date(approvedDate)) || new Date();
+
+    Customer.update({ peaId, 'verifies._id': mongoose.Types.ObjectId(verifyId) },
+      { "$set": { "verifies.$.approvedDate": approvedDate } })
+      .then(result => {
+        console.log("approve result", result)
+        if (!result) {
+          return res.json({
+            status: "approve_none"
+          })
+        }
+        return res.json({
+          status: "approved",
+          approve: { peaId, verifyId, approvedDate }
+        })
+      }).catch(next)
+
+  })
+
+router.patch("/revoke_approve/:peaId/:verifyId",
+  auth.required,
+  userController.getUser,
+  userController.grantAccess("deleteAny"),
+  (req, res, next) => {
+
+    const { peaId, verifyId } = req.params;
+    if (!peaId || !verifyId) {
+      return res.status(400).json({
+        error: "Bad request"
+      });
+    }
+
+    Customer.update({ peaId, 'verifies._id': mongoose.Types.ObjectId(verifyId) },
+      { "$set": { "verifies.$.approvedDate": null } })
+      .then(result => {
+        console.log("approve result", result)
+        if (!result) {
+          return res.json({
+            status: "approve_none_revoked"
+          })
+        }
+        return res.json({
+          status: "approve_revoked",
+          approve: { peaId, verifyId }
+        })
+      }).catch(next)
+  })
+
+router.patch("/set_verify/:peaId/:verifyId",
+  auth.required,
+  userController.getUser,
+  userController.grantAccess("deleteAny"),
+  (req, res, next) => {
+
+    const { peaId, verifyId } = req.params;
+    const { state } = req.body
+    if (!peaId || !verifyId || !state) {
+      return res.status(400).json({
+        error: "Bad request"
+      });
+    }
+
+    Customer.update({ peaId, 'verifies._id': mongoose.Types.ObjectId(verifyId) },
+      { "$set": { "verifies.$.state": state } })
+      .then(result => {
+        console.log("set_verify result", result)
+        if (!result) {
+          return res.json({
+            status: "set_verify_none"
+          })
+        }
+        return res.json({
+          status: "set_verify_success",
+          verify: { peaId, verifyId, state }
+        })
+      }).catch(next)
+  })
 
 router.delete(
   "/:peaId",
