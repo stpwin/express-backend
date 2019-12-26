@@ -106,8 +106,9 @@ app.use(async (req, res, next) => {
   next(err);
 });
 
-const production = true;
-if (production) {
+console.log(`Start in ${isProduction ? "Production" : "Development"} mode`);
+
+if (isProduction) {
   app.use(async (err, req, res, next) => {
     res.status(err.status || 500).json({
       errors: {
