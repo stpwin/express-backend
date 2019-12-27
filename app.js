@@ -94,6 +94,7 @@ mongoose
 
 require("./models/User");
 require("./models/Customer");
+require("./models/Counter");
 
 require("./models/Counter");
 

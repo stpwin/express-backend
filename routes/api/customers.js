@@ -220,27 +220,27 @@ router.get(
     const offset = (page - 1) * limit;
     Customer.aggregate(
       [{
-        $match: {
-          $or: queries,
-          ...warFilters
+          $match: {
+            $or: queries,
+            ...warFilters
+          }
+        },
+        {
+          $facet: {
+            metadata: [{
+              $count: "total"
+            }, {
+              $addFields: {
+                page: page
+              }
+            }],
+            data: [{
+              $skip: offset
+            }, {
+              $limit: limit
+            }]
+          }
         }
-      },
-      {
-        $facet: {
-          metadata: [{
-            $count: "total"
-          }, {
-            $addFields: {
-              page: page
-            }
-          }],
-          data: [{
-            $skip: offset
-          }, {
-            $limit: limit
-          }]
-        }
-      }
       ],
       (err, docs) => {
         if (!docs || !docs[0] || !docs[0].metadata[0]) {
@@ -275,7 +275,10 @@ router.get(
   (req, res, next) => {
     console.log("GET_FILTER_CUSTOMERS_BY_SEQUENCE");
 
-    let { war, seq } = req.params;
+    let {
+      war,
+      seq
+    } = req.params;
     seq = parseInt(seq)
 
     if (!war || !seq) {
@@ -283,14 +286,20 @@ router.get(
     }
 
     Customer.find({
-      war: { $in: typeWars[war] },
+      war: {
+        $in: typeWars[war]
+      },
       seq
     }).then(result => {
       if (result && result.length > 0) {
         console.log(result)
-        return res.json({ customers: result })
+        return res.json({
+          customers: result
+        })
       }
-      return res.json({ customers: null })
+      return res.json({
+        customers: null
+      })
     }).catch(next)
   }
 );
@@ -323,25 +332,25 @@ router.get(
 
     Customer.aggregate(
       [{
-        $match: query
-      },
-      // { $project: { verifies: { $slice: ["$verifies", -6] } } },
-      {
-        $facet: {
-          metadata: [{
-            $count: "total"
-          }, {
-            $addFields: {
-              page: page
-            }
-          }],
-          data: [{
-            $skip: offset
-          }, {
-            $limit: limit
-          }]
+          $match: query
+        },
+        // { $project: { verifies: { $slice: ["$verifies", -6] } } },
+        {
+          $facet: {
+            metadata: [{
+              $count: "total"
+            }, {
+              $addFields: {
+                page: page
+              }
+            }],
+            data: [{
+              $skip: offset
+            }, {
+              $limit: limit
+            }]
+          }
         }
-      }
       ],
       (err, docs) => {
         if (!docs || !docs[0] || !docs[0].metadata[0]) {
@@ -415,7 +424,9 @@ router.put(
       return res.sendStatus(400)
     }
 
-    // console.log("appearDate:", new Date(appearDate))
+    console.log({
+      appearDate
+    })
     // return res.sendStatus(500)
 
     upload(req, res, function (err) {
@@ -426,9 +437,11 @@ router.put(
       }
 
       req.customer.verifies.push({
-        appearDate: appearDate,
+        appearDate,
         signature: req.file && req.file.filename
       });
+
+      // console.log("verifies", req.customer.verifies)
 
       req.customer
         .save()
@@ -438,9 +451,7 @@ router.put(
             status: "verify_success"
           });
         })
-        .catch(err => {
-          console.log(err)
-        });
+        .catch(next);
     });
   }
 );
@@ -477,6 +488,11 @@ router.put(
       customer.address.districtNo = customerData.address.districtNo;
       updates.push("address.districtNo");
       // }
+    }
+
+    if (isValid(customerData.peaId)) {
+      customer.peaId = customerData.peaId;
+      updates.push("peaId");
     }
 
     if (isValid(customerData.title)) {
@@ -520,6 +536,140 @@ router.put(
   }
 );
 
+router.patch("/approve/:peaId/:verifyId",
+  auth.required,
+  userController.getUser,
+  userController.grantAccess("deleteAny"),
+  (req, res, next) => {
+
+    const {
+      peaId,
+      verifyId
+    } = req.params;
+    let {
+      approvedDate
+    } = req.body
+    if (!peaId || !verifyId) {
+      return res.status(400).json({
+        error: "Bad request"
+      });
+    }
+
+    approvedDate = (approvedDate && new Date(approvedDate)) || new Date();
+
+    Customer.update({
+        peaId,
+        'verifies._id': mongoose.Types.ObjectId(verifyId)
+      }, {
+        "$set": {
+          "verifies.$.approvedDate": approvedDate
+        }
+      })
+      .then(result => {
+        console.log("approve result", result)
+        if (!result) {
+          return res.json({
+            status: "approve_none"
+          })
+        }
+        return res.json({
+          status: "approved",
+          approve: {
+            peaId,
+            verifyId,
+            approvedDate
+          }
+        })
+      }).catch(next)
+
+  })
+
+router.patch("/revoke_approve/:peaId/:verifyId",
+  auth.required,
+  userController.getUser,
+  userController.grantAccess("deleteAny"),
+  (req, res, next) => {
+
+    const {
+      peaId,
+      verifyId
+    } = req.params;
+    if (!peaId || !verifyId) {
+      return res.status(400).json({
+        error: "Bad request"
+      });
+    }
+
+    Customer.update({
+        peaId,
+        'verifies._id': mongoose.Types.ObjectId(verifyId)
+      }, {
+        "$set": {
+          "verifies.$.approvedDate": null
+        }
+      })
+      .then(result => {
+        console.log("approve result", result)
+        if (!result) {
+          return res.json({
+            status: "approve_none_revoked"
+          })
+        }
+        return res.json({
+          status: "approve_revoked",
+          approve: {
+            peaId,
+            verifyId
+          }
+        })
+      }).catch(next)
+  })
+
+router.patch("/set_verify/:peaId/:verifyId",
+  auth.required,
+  userController.getUser,
+  userController.grantAccess("deleteAny"),
+  (req, res, next) => {
+
+    const {
+      peaId,
+      verifyId
+    } = req.params;
+    const {
+      state
+    } = req.body
+    if (!peaId || !verifyId || !state) {
+      return res.status(400).json({
+        error: "Bad request"
+      });
+    }
+
+    Customer.update({
+        peaId,
+        'verifies._id': mongoose.Types.ObjectId(verifyId)
+      }, {
+        "$set": {
+          "verifies.$.state": state
+        }
+      })
+      .then(result => {
+        console.log("set_verify result", result)
+        if (!result) {
+          return res.json({
+            status: "set_verify_none"
+          })
+        }
+        return res.json({
+          status: "set_verify_success",
+          verify: {
+            peaId,
+            verifyId,
+            state
+          }
+        })
+      }).catch(next)
+  })
+
 router.delete(
   "/:peaId",
   auth.required,
@@ -533,8 +683,8 @@ router.delete(
     }
 
     Customer.findOneAndRemove({
-      peaId: peaId
-    })
+        peaId: peaId
+      })
       .then(customer => {
         console.log("DELETE_CUSTOMER: SUCCESS");
         if (!customer) {

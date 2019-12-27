@@ -2,22 +2,19 @@ const mongoose = require("mongoose");
 const Customer = mongoose.model("Customer");
 
 exports.getCustomerByPeaId = async (req, res, next) => {
-  const { peaId } = req.params;
+  const {
+    peaId
+  } = req.params;
   if (!peaId) {
-    return res.status(400).json({
-      error: "Bad request"
-    });
+    return res.sendStatus(400)
   }
 
-  Customer.findOne(
-    { peaId: peaId },
-    // { verifies: { $slice: -6 } }
-  )
+  Customer.findOne({
+      peaId
+    })
     .then(customer => {
       if (!customer) {
-        return res.status(204).json({
-          error: "No customer found!"
-        });
+        return res.sendStatus(204)
       }
       customer.verifies.sort((a, b) => {
         return new Date(b.appearDate) - new Date(a.appearDate);
@@ -29,7 +26,10 @@ exports.getCustomerByPeaId = async (req, res, next) => {
 };
 
 exports.getCustomerSignature = async (req, res, next) => {
-  const { peaId, verifyId } = req.params;
+  const {
+    peaId,
+    verifyId
+  } = req.params;
   if (!peaId || !verifyId) {
     return res.status(400).json({
       error: "Bad request"
@@ -37,8 +37,7 @@ exports.getCustomerSignature = async (req, res, next) => {
   }
 
   Customer.aggregate(
-    [
-      {
+    [{
         $unwind: "$verifies"
       },
       {
@@ -50,7 +49,9 @@ exports.getCustomerSignature = async (req, res, next) => {
       {
         $group: {
           _id: "$verifies._id",
-          signature: { $first: "$verifies.signature" }
+          signature: {
+            $first: "$verifies.signature"
+          }
         }
       }
     ],
