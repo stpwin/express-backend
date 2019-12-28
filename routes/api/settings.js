@@ -63,29 +63,90 @@ router.patch(
   }
 );
 
-
 router.get(
   "/database/info",
   auth.required,
   userController.getUser,
   userController.grantAccess("readAny"),
   (req, res, next) => {
-
+    const start = new Date(new Date().getFullYear(), 0, 1)
+    const end = new Date(new Date().getFullYear(), 11, 31)
     Customer.aggregate([{
-        $group: {
-          _id: {
-            war: "$war"
-          },
-          count: {
-            $sum: 1
+      $facet: {
+        warWithCount: [
+          {
+            $group: {
+              _id: "$war",
+              count: {
+                $sum: 1
+              }
+            }
           }
+        ],
+        warWithAppearCount: [
+          {
+            $match: {
+              verifies: {
+                $elemMatch: {
+                  appearDate: { $gte: start, $lt: end }
+                }
+              }
+            }
+          },
+          {
+            $group: {
+              _id: "$war",
+              appearCount: {
+                $sum: 1
+              }
+            }
+          }
+        ],
+        warWithApprovedCount: [
+          {
+            $match: {
+              verifies: {
+                $elemMatch: {
+                  approvedDate: { $gte: start, $lt: end }
+                }
+              }
+            }
+          },
+          {
+            $group: {
+              _id: "$war",
+              approvedCount: {
+                $sum: 1
+              }
+            }
+          }
+        ]
+      }
+    },
+    { $project: { activity: { $setUnion: ['$warWithCount', '$warWithAppearCount', '$warWithApprovedCount'] } } },
+    { $unwind: '$activity' },
+    { $replaceRoot: { newRoot: "$activity" } },
+    {
+      $group: {
+        _id: "$_id",
+        count: {
+          $sum: "$count"
+        },
+        appearCount: {
+          $sum: "$appearCount"
+        },
+        approvedCount: {
+          $sum: "$approvedCount"
         }
       }
+    }
 
     ]).then(result => {
       return res.json(result.map(item => ({
-        war: item._id.war,
-        count: item.count
+        war: item._id,
+        count: item.count,
+        appearCount: item.appearCount,
+        approvedCount: item.approvedCount
       })))
     }).catch(next)
 
