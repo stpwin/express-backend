@@ -1,6 +1,8 @@
 const mongoose = require("mongoose");
 const router = require("express").Router();
 const auth = require("../auth");
+var fs = require('fs');
+var path = require('path');
 
 const customerController = require("../../controllers/customerController");
 const userController = require("../../controllers/userController");
@@ -625,7 +627,7 @@ router.patch("/revoke_approve/:peaId/:verifyId",
       }).catch(next)
   })
 
-router.patch("/set_verify/:peaId/:verifyId",
+router.patch("/verify/:peaId/:verifyId",
   auth.required,
   userController.getUser,
   userController.grantAccess("deleteAny"),
@@ -669,6 +671,60 @@ router.patch("/set_verify/:peaId/:verifyId",
         })
       }).catch(next)
   })
+
+router.delete("/verify/:peaId/:verifyId",
+  auth.required,
+  userController.getUser,
+  userController.grantAccess("deleteAny"),
+  (req, res, next) => {
+
+    const {
+      peaId,
+      verifyId
+    } = req.params;
+
+    if (!peaId || !verifyId) {
+      return res.status(400).json({
+        error: "Bad request"
+      });
+    }
+
+    Customer.findOneAndUpdate({
+        peaId
+      }, {
+        $pull: {
+          verifies: {
+            _id: mongoose.Types.ObjectId(verifyId)
+          }
+        }
+      }, {
+        fields: {
+          verifies: 1
+        }
+      })
+      .then(result => {
+        console.log("remove_verify result", result)
+        if (!result) {
+          return res.json({
+            status: "remove_verify_none"
+          })
+        }
+        const verify = result.verifies.find(ele => ele._id === verifyId)
+        fs.unlink(path.join(signaturePath, verify.signature), err => {
+          if (err) {
+
+          }
+        })
+        return res.json({
+          status: "remove_verify_success",
+          verify: {
+            peaId,
+            verifyId
+          }
+        })
+      }).catch(next)
+  })
+
 
 router.delete(
   "/:peaId",
