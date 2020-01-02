@@ -222,27 +222,27 @@ router.get(
     const offset = (page - 1) * limit;
     Customer.aggregate(
       [{
-          $match: {
-            $or: queries,
-            ...warFilters
-          }
-        },
-        {
-          $facet: {
-            metadata: [{
-              $count: "total"
-            }, {
-              $addFields: {
-                page: page
-              }
-            }],
-            data: [{
-              $skip: offset
-            }, {
-              $limit: limit
-            }]
-          }
+        $match: {
+          $or: queries,
+          ...warFilters
         }
+      },
+      {
+        $facet: {
+          metadata: [{
+            $count: "total"
+          }, {
+            $addFields: {
+              page: page
+            }
+          }],
+          data: [{
+            $skip: offset
+          }, {
+            $limit: limit
+          }]
+        }
+      }
       ],
       (err, docs) => {
         if (!docs || !docs[0] || !docs[0].metadata[0]) {
@@ -334,25 +334,25 @@ router.get(
 
     Customer.aggregate(
       [{
-          $match: query
-        },
-        // { $project: { verifies: { $slice: ["$verifies", -6] } } },
-        {
-          $facet: {
-            metadata: [{
-              $count: "total"
-            }, {
-              $addFields: {
-                page: page
-              }
-            }],
-            data: [{
-              $skip: offset
-            }, {
-              $limit: limit
-            }]
-          }
+        $match: query
+      },
+      // { $project: { verifies: { $slice: ["$verifies", -6] } } },
+      {
+        $facet: {
+          metadata: [{
+            $count: "total"
+          }, {
+            $addFields: {
+              page: page
+            }
+          }],
+          data: [{
+            $skip: offset
+          }, {
+            $limit: limit
+          }]
         }
+      }
       ],
       (err, docs) => {
         if (!docs || !docs[0] || !docs[0].metadata[0]) {
@@ -560,13 +560,13 @@ router.patch("/approve/:peaId/:verifyId",
     approvedDate = (approvedDate && new Date(approvedDate)) || new Date();
 
     Customer.update({
-        peaId,
-        'verifies._id': mongoose.Types.ObjectId(verifyId)
-      }, {
-        "$set": {
-          "verifies.$.approvedDate": approvedDate
-        }
-      })
+      peaId,
+      'verifies._id': mongoose.Types.ObjectId(verifyId)
+    }, {
+      "$set": {
+        "verifies.$.approvedDate": approvedDate
+      }
+    })
       .then(result => {
         console.log("approve result", result)
         if (!result) {
@@ -603,13 +603,13 @@ router.patch("/revoke_approve/:peaId/:verifyId",
     }
 
     Customer.update({
-        peaId,
-        'verifies._id': mongoose.Types.ObjectId(verifyId)
-      }, {
-        "$set": {
-          "verifies.$.approvedDate": null
-        }
-      })
+      peaId,
+      'verifies._id': mongoose.Types.ObjectId(verifyId)
+    }, {
+      "$set": {
+        "verifies.$.approvedDate": null
+      }
+    })
       .then(result => {
         console.log("approve result", result)
         if (!result) {
@@ -647,13 +647,13 @@ router.patch("/verify/:peaId/:verifyId",
     }
 
     Customer.update({
-        peaId,
-        'verifies._id': mongoose.Types.ObjectId(verifyId)
-      }, {
-        "$set": {
-          "verifies.$.state": state
-        }
-      })
+      peaId,
+      'verifies._id': mongoose.Types.ObjectId(verifyId)
+    }, {
+      "$set": {
+        "verifies.$.state": state
+      }
+    })
       .then(result => {
         console.log("set_verify result", result)
         if (!result) {
@@ -690,31 +690,37 @@ router.delete("/verify/:peaId/:verifyId",
     }
 
     Customer.findOneAndUpdate({
-        peaId
-      }, {
-        $pull: {
-          verifies: {
-            _id: mongoose.Types.ObjectId(verifyId)
-          }
+      peaId
+    }, {
+      $pull: {
+        verifies: {
+          _id: mongoose.Types.ObjectId(verifyId)
         }
-      }, {
-        fields: {
-          verifies: 1
-        }
-      })
+      }
+    }, {
+      fields: {
+        verifies: 1
+      }
+    })
       .then(result => {
-        console.log("remove_verify result", result)
+        console.log("remove_verify result:", result)
         if (!result) {
           return res.json({
             status: "remove_verify_none"
           })
         }
-        const verify = result.verifies.find(ele => ele._id === verifyId)
-        fs.unlink(path.join(signaturePath, verify.signature), err => {
-          if (err) {
+        const verify = result.verifies.find(ele => ele._id.toString() === verifyId)
+        console.log({ verify })
+        if (verify && verify.signature) {
+          fs.unlink(path.join(signaturePath, verify.signature), err => {
+            if (err) {
+              console.log("delete file fail:", err)
+              return
+            }
+            console.log("deleted:", path.join(signaturePath, verify.signature))
+          })
+        }
 
-          }
-        })
         return res.json({
           status: "remove_verify_success",
           verify: {
@@ -739,8 +745,8 @@ router.delete(
     }
 
     Customer.findOneAndRemove({
-        peaId: peaId
-      })
+      peaId: peaId
+    })
       .then(customer => {
         console.log("DELETE_CUSTOMER: SUCCESS");
         if (!customer) {
