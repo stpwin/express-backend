@@ -69,84 +69,125 @@ router.get(
   userController.getUser,
   userController.grantAccess("readAny"),
   (req, res, next) => {
-    const start = new Date(new Date().getFullYear(), 0, 1)
-    const end = new Date(new Date().getFullYear(), 11, 31)
+    const tempDate = new Date();
+    const start = new Date(tempDate.getFullYear(), 0, 1)
+    const end = new Date(tempDate.getFullYear(), 11, 31)
+    const startToday = new Date(tempDate.setUTCHours(0, 0, 0, 0))
+    const endToday = new Date(tempDate.setUTCHours(23, 59, 59, 999))
     Customer.aggregate([{
-      $facet: {
-        warWithCount: [
-          {
+        $facet: {
+          warWithCount: [{
             $group: {
               _id: "$war",
               count: {
                 $sum: 1
               }
             }
-          }
-        ],
-        warWithAppearCount: [
-          {
-            $match: {
-              verifies: {
-                $elemMatch: {
-                  appearDate: { $gte: start, $lt: end }
+          }],
+          warWithAppearCount: [{
+              $match: {
+                verifies: {
+                  $elemMatch: {
+                    appearDate: {
+                      $gte: start,
+                      $lt: end
+                    }
+                  }
+                }
+              }
+            },
+            {
+              $group: {
+                _id: "$war",
+                appearCount: {
+                  $sum: 1
                 }
               }
             }
-          },
-          {
-            $group: {
-              _id: "$war",
-              appearCount: {
-                $sum: 1
+          ],
+          warWithApprovedCount: [{
+              $match: {
+                verifies: {
+                  $elemMatch: {
+                    approvedDate: {
+                      $gte: start,
+                      $lt: end
+                    }
+                  }
+                }
               }
-            }
-          }
-        ],
-        warWithApprovedCount: [
-          {
-            $match: {
-              verifies: {
-                $elemMatch: {
-                  approvedDate: { $gte: start, $lt: end }
+            },
+            {
+              $group: {
+                _id: "$war",
+                approvedCount: {
+                  $sum: 1
                 }
               }
             }
-          },
-          {
+          ],
+          today: [{
+            $match: {
+              verifies: {
+                $elemMatch: {
+                  appearDate: {
+                    $gte: startToday,
+                    $lt: endToday
+                  }
+                }
+              }
+            }
+          }, {
             $group: {
               _id: "$war",
-              approvedCount: {
+              today: {
                 $sum: 1
               }
             }
+          }]
+        }
+      },
+      {
+        $project: {
+          activity: {
+            $setUnion: ['$warWithCount', '$warWithAppearCount', '$warWithApprovedCount', "$today"]
           }
-        ]
-      }
-    },
-    { $project: { activity: { $setUnion: ['$warWithCount', '$warWithAppearCount', '$warWithApprovedCount'] } } },
-    { $unwind: '$activity' },
-    { $replaceRoot: { newRoot: "$activity" } },
-    {
-      $group: {
-        _id: "$_id",
-        count: {
-          $sum: "$count"
-        },
-        appearCount: {
-          $sum: "$appearCount"
-        },
-        approvedCount: {
-          $sum: "$approvedCount"
+        }
+      },
+      {
+        $unwind: '$activity'
+      },
+      {
+        $replaceRoot: {
+          newRoot: "$activity"
+        }
+      },
+      {
+        $group: {
+          _id: "$_id",
+          count: {
+            $sum: "$count"
+          },
+          appearCount: {
+            $sum: "$appearCount"
+          },
+          approvedCount: {
+            $sum: "$approvedCount"
+          },
+          today: {
+            $sum: "$today"
+          }
         }
       }
-    }
 
     ]).then(result => {
+      console.log(result)
       return res.json(result.map(item => ({
         war: item._id,
         count: item.count,
         appearCount: item.appearCount,
-        approvedCount: item.approvedCount
+        approvedCount: item.approvedCount,
+        today: item.today
       })))
     }).catch(next)
 
