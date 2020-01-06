@@ -63,6 +63,11 @@ router.patch(
   }
 );
 
+const start = new Date(new Date().getUTCFullYear() - 1, 1, 1)
+const end = new Date(new Date().getUTCFullYear(), 1, 1)
+const ccc = (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)
+console.log({ start: start, end: end, ccc })
+
 router.get(
   "/database/info",
   auth.required,
@@ -70,124 +75,148 @@ router.get(
   userController.grantAccess("readAny"),
   (req, res, next) => {
     const tempDate = new Date();
-    const start = new Date(tempDate.getFullYear(), 0, 1)
-    const end = new Date(tempDate.getFullYear(), 11, 31)
+    const start = new Date(tempDate.getUTCFullYear() - 1, 1, 1)
+    const end = new Date(tempDate.getUTCFullYear(), 1, 1)
+    console.log({ start: start.toLocaleString(), end: end.toLocaleString() })
     const startToday = new Date(tempDate.setUTCHours(0, 0, 0, 0))
     const endToday = new Date(tempDate.setUTCHours(23, 59, 59, 999))
     Customer.aggregate([{
-        $facet: {
-          warWithCount: [{
-            $group: {
-              _id: "$war",
-              count: {
-                $sum: 1
-              }
+      $facet: {
+        warWithCount: [{
+          $group: {
+            _id: "$war",
+            count: {
+              $sum: 1
             }
-          }],
-          warWithAppearCount: [{
-              $match: {
-                verifies: {
-                  $elemMatch: {
-                    appearDate: {
-                      $gte: start,
-                      $lt: end
-                    }
-                  }
-                }
-              }
-            },
-            {
-              $group: {
-                _id: "$war",
-                appearCount: {
-                  $sum: 1
+          }
+        }],
+        warWithAppearCount: [{
+          $match: {
+            verifies: {
+              $elemMatch: {
+                appearDate: {
+                  $gte: start,
+                  $lt: end
                 }
               }
             }
-          ],
-          warWithApprovedCount: [{
-              $match: {
-                verifies: {
-                  $elemMatch: {
-                    approvedDate: {
-                      $gte: start,
-                      $lt: end
-                    }
-                  }
-                }
-              }
-            },
-            {
-              $group: {
-                _id: "$war",
-                approvedCount: {
-                  $sum: 1
-                }
-              }
+          }
+        },
+        {
+          $group: {
+            _id: "$war",
+            appearCount: {
+              $sum: 1
             }
-          ],
-          today: [{
-            $match: {
-              verifies: {
-                $elemMatch: {
-                  appearDate: {
-                    $gte: startToday,
-                    $lt: endToday
-                  }
-                }
-              }
-            }
-          }, {
-            $group: {
-              _id: "$war",
-              today: {
-                $sum: 1
-              }
-            }
-          }]
-        }
-      },
-      {
-        $project: {
-          activity: {
-            $setUnion: ['$warWithCount', '$warWithAppearCount', '$warWithApprovedCount', "$today"]
           }
         }
-      },
-      {
-        $unwind: '$activity'
-      },
-      {
-        $replaceRoot: {
-          newRoot: "$activity"
-        }
-      },
-      {
-        $group: {
-          _id: "$_id",
-          count: {
-            $sum: "$count"
-          },
-          appearCount: {
-            $sum: "$appearCount"
-          },
-          approvedCount: {
-            $sum: "$approvedCount"
-          },
-          today: {
-            $sum: "$today"
+        ],
+        warWithApprovedCount: [{
+          $match: {
+            verifies: {
+              $elemMatch: {
+                approvedDate: {
+                  $gte: start,
+                  $lt: end
+                }
+              }
+            }
           }
+        },
+        {
+          $group: {
+            _id: "$war",
+            approvedCount: {
+              $sum: 1
+            }
+          }
+        }
+        ],
+        todayAppear: [{
+          $match: {
+            verifies: {
+              $elemMatch: {
+                appearDate: {
+                  $gte: startToday,
+                  $lt: endToday
+                }
+              }
+            }
+          }
+        }, {
+          $group: {
+            _id: "$war",
+            todayAppear: {
+              $sum: 1
+            }
+          }
+        }],
+        todayApproved: [{
+          $match: {
+            verifies: {
+              $elemMatch: {
+                approvedDate: {
+                  $gte: startToday,
+                  $lt: endToday
+                }
+              }
+            }
+          }
+        }, {
+          $group: {
+            _id: "$war",
+            todayApproved: {
+              $sum: 1
+            }
+          }
+        }]
+      }
+    },
+    {
+      $project: {
+        activity: {
+          $setUnion: ['$warWithCount', '$warWithAppearCount', '$warWithApprovedCount', '$todayAppear', '$todayApproved']
         }
       }
+    },
+    {
+      $unwind: '$activity'
+    },
+    {
+      $replaceRoot: {
+        newRoot: "$activity"
+      }
+    },
+    {
+      $group: {
+        _id: "$_id",
+        count: {
+          $sum: "$count"
+        },
+        appearCount: {
+          $sum: "$appearCount"
+        },
+        approvedCount: {
+          $sum: "$approvedCount"
+        },
+        todayAppear: {
+          $sum: "$todayAppear"
+        },
+        todayApproved: {
+          $sum: "$todayApproved"
+        }
+      }
+    }
 
     ]).then(result => {
-      console.log(result)
+      // console.log(result)
       return res.json(result.map(item => ({
         war: item._id,
         count: item.count,
         appearCount: item.appearCount,
         approvedCount: item.approvedCount,
-        today: item.today
+        todayAppear: item.todayAppear,
+        todayApproved: item.todayApproved
       })))
     }).catch(next)
 
