@@ -49,7 +49,7 @@ const CustomerSchema = new mongoose.Schema({
   address: AddressSchema,
   authorize: {
     type: String,
-    enum: ["ทหาร", "ตัวแทน", "ภรรยา", "ทายาท"],
+    enum: ["ทหาร", "ตัวแทน", "ภรรยา", "ทายาท", "มารดาทหาร"],
     required: [true, "กรณีเป็นไม่ควรว่าง"]
   },
   soldierNo: String,
