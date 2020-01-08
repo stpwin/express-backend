@@ -69,7 +69,15 @@ const CustomerSchema = new mongoose.Schema({
   },
   verifies: [VerifySchema],
   privilegeDate: Date,
-  seq: Number
+  seq: Number,
+  tel: {
+    type: String,
+    max: [15, "หมายเลขโทรศัพท์ไม่ควรเกิน 15 หลัก"]
+  },
+  description: {
+    type: String,
+    max: 5000
+  }
 }, {
   timestamps: true
 });
